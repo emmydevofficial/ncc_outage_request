@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Edit Request {{ req.request_id }}</h3>
+<form method="post" action="{% url 'edit_request' req.id %}">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Request ID</label>
+    <input type="text" class="form-control" value="{{ req.request_id }}" disabled>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Created by</label>
+    <input type="text" class="form-control" value="{{ req.user.get_full_name }} ({{ req.user.username }})" disabled>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Station</label>
+    <input type="text" class="form-control" value="{{ req.station.name }}" disabled>
+  </div>
+  <!-- Editable fields -->
+  <div class="mb-3">
+    <label class="form-label">Outage Type</label>
+    <select name="outage_type" class="form-control" disabled>
+      <option value="Planned" {% if req.outage_type == 'Planned' %}selected{% endif %}>Planned</option>
+      <option value="Annual" {% if req.outage_type == 'Annual' %}selected{% endif %}>Annual Maintenance</option>                  
+      <option value="Urgent"  {% if req.outage_type == 'Urgent'  %}selected{% endif %}>Urgent</option>      
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Work Description</label>
+    <textarea name="work" class="form-control" rows="5">{{ req.work_description }}</textarea>
+  </div>
+
+  <!-- Other fields displayed as read-only -->
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Start Date</label>
+      <input type="date" class="form-control" name="start_date" value="{{ req.start_date|date:'Y-m-d' }}">      
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Start Time</label>
+      <input type="time" class="form-control" name="start_time" value="{{ req.start_time|time:'H:i' }}">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">End Date</label>
+      <input type="date" class="form-control" name="end_date" value="{{ req.end_date|date:'Y-m-d' }}">
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">End Time</label>
+      <input type="time" class="form-control" name="end_time" value="{{ req.end_time|time:'H:i' }}">
+    </div>
+  </div>
+
+  <!-- Continue listing any additional read-only fields as needed -->
+
+  <button type="submit" class="btn btn-primary">Save Changes</button>
+  <a href="{% url 'view_request' req.id %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

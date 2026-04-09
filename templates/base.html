@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>NCC Admin</title>
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="{% static 'vendors/mdi/css/materialdesignicons.min.css'%}">
+    <link rel="stylesheet" href="{% static 'vendors/css/vendor.bundle.base.css'%}">
+    <!-- endinject -->
+    <!-- Plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <!-- endinject -->
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="{% static 'css/style.css'%}">
+    <!-- End layout styles -->
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" />
+  </head>
+  <body>
+    <div class="container-scroller">
+      {% comment %} navbar {% endcomment %}
+      {% include "partials/_navbar.html" %}
+          <!-- partial -->
+      <div class="container-fluid page-body-wrapper">
+
+        {% comment %} sidebar {% endcomment %}
+        {% include "partials/_sidebar.html" %}
+        <!-- partial -->
+        <div class="main-panel">
+          
+          {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+          <div class="content-wrapper">
+            {% block content %} {% endblock %}
+          </div>
+
+          <!-- content-wrapper ends -->
+          {% include "partials/_footer.html" %}   <!-- partial -->
+        </div>
+        <!-- main-panel ends -->
+      </div>
+      <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    <script src="{% static 'vendors/js/vendor.bundle.base.js' %}"></script>
+    <!-- endinject -->
+    <!-- Plugin js for this page -->
+    <!-- End plugin js for this page -->
+    <!-- inject:js -->
+    <script src="{% static 'js/off-canvas.js' %}"></script>
+    <script src="{% static 'js/hoverable-collapse.js' %}"></script>
+    <script src="{% static 'js/misc.js' %}"></script>
+    <!-- endinject -->
+    <!-- Custom js for this page -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const openLink = document.getElementById('open-activity-log');
+        const logsModal = new bootstrap.Modal(document.getElementById('logs-modal'));
+        const container = document.getElementById('logs-container');
+    
+        openLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          fetch('{% url "activity_logs" %}')
+            .then(resp => resp.text())
+            .then(html => {
+              container.innerHTML = html;
+              logsModal.show();
+            });
+        });
+    
+        document.getElementById('print-logs').addEventListener('click', function() {
+          const printWindow = window.open('', '_blank');
+          printWindow.document.write('<html><head><title>Print Logs</title>');
+          printWindow.document.write('</head><body>' + container.innerHTML + '</body></html>');
+          printWindow.document.close();
+          printWindow.print();
+        });
+    
+        // Handler for Request ID links on request list/view
+        document.querySelectorAll('.request-id-link').forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const reqId = this.dataset.id;
+            fetch(`/logs/?request_id=${reqId}`)
+              .then(resp => resp.text())
+              .then(html => {
+                container.innerHTML = html;
+                logsModal.show();
+              });
+          });
+        });
+      });
+    </script>
+
+    
+    <!-- End custom js for this page -->
+  </body>
+
+  <div id="logs-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Activity Log</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="logs-container">
+          <!-- content loaded via AJAX -->
+        </div>
+        <div class="modal-footer">
+          <button id="print-logs" class="btn btn-primary">Print</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</html>

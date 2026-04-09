@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+  <h3 class="page-title"> Requests </h3>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="#">Requests</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Add Request</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="col-12 grid-margin stretch-card">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Request</h4>
+      <p class="card-description"> Add New Request </p>
+      <form id="request-form" class="forms-sample" method="post" action="{% url 'create_request' %}">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Username</label>
+              <input disabled type="text" class="form-control" value="{{ user.username }}">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Station Name</label>
+              <input disabled type="text" class="form-control" value="{{ user.station.name }}">
+            </div>
+          </div>
+
+          <input name="username" type="hidden" value="{{ user.id }}">
+          <input name="station" type="hidden" value="{{ user.station.id }}">
+
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Protection Guarantee</label>
+              <input name="pg" type="text" class="form-control" placeholder="Protection">
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Outage Type</label>
+              <select id="outage-type" name="outage_type" class="form-control">
+                <option value="Planned">Planned</option>
+                <option value="Annual">Annual Maintenance</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Equipment</label>
+              <select id="equipment-select" name="equipment" class="form-control">
+                <option value="">--------</option>
+                {% for equipment in equipments %}
+                  <option value="{{ equipment.id }}">{{ equipment.name }}</option>
+                {% endfor %}
+                <option value="other">Other (Not listed)</option>
+              </select>
+            </div>
+            <div class="form-group" id="custom-equipment-group" style="display:none;">
+              <label>Custom Equipment Name</label>
+              <input type="text" name="custom_equipment_name" class="form-control">
+            </div>
+            <div class="form-group" id="eq_schedule_date" style="display:none;">
+              <p id="eqScheduleDate">Schedule Date: </p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Line</label>
+              <select id="line-select" name="line" class="form-control">
+                <option value="">--------</option>
+                {% for line in lines %}
+                  <option value="{{ line.id }}">{{ line.name }}</option>
+                {% endfor %}
+                <option value="other">Other (Not listed)</option>
+              </select>
+            </div>
+            <div class="form-group" id="custom-line-group" style="display:none;">
+              <label>Custom Line Name</label>
+              <input type="text" name="custom_line_name" class="form-control">
+            </div>
+            <div class="form-group" id="li_schedule_date" style="display:none;">
+              <p id="liScheduleDate">Schedule Date: </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="row form-group" id="approved-date-group" style="display:none;">
+          <div class="col-md-6">
+            <label>Approved Date</label>
+            <input id="approved-date" name="approved_date" type="date" class="form-control">
+          </div>
+        </div>
+
+        <!-- Other fields unchanged -->
+        <div class="row">
+          <div class="form-group">
+            <label>Work Description</label>
+            <textarea name="work" class="form-control" rows="5"></textarea>
+          </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label >Load Involved (MW)</label>
+                <input name="load" type="number" step="0.1" class="form-control" placeholder="Load Involved">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label >Apparatus For Safe Working Space</label>
+                <input name="apparatus" type="text" class="form-control">
+              </div>
+              
+            </div>
+          </div>          
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label >Start Date</label>
+                <input id="start-date" name="start_date" type="date" class="form-control" placeholder="Start Date">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label >Start Time</label>
+                <input name="start_time" type="time" class="form-control">
+              </div>
+              
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label >End Date</label>
+                <input name="end_date" type="date" class="form-control" placeholder="End Date">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label >End Time</label>
+                <input name="end_time" type="time" class="form-control">
+              </div>             
+            </div>
+          </div>
+
+          <div class="row" id="reason-submission" style="display: none;">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Reason for Late Submission || Why is the Job Date different from the Schedule Date</label>
+                <select id="line-select" name="reason-sub" class="form-control">
+                  <option value="">Please select a reason</option>
+                  <option value="negligence">Negligence</option>
+                  <option value="work hindered due to maintenance crew">Work was previously hindered due to maintenance crew</option>               
+                  <option value="work hindered due to rainfall">Work was previously hindered due to rainfall</option>
+                  <option value="work was resheduled by NCC">Work was resheduled by NCC</option>
+                </select>
+              </div>            
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-group">
+              <label> Remark</label>
+              <textarea name="remark" class="form-control" rows="5"></textarea>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-group">
+              <label> Areas to be affected</label>
+              <textarea name="areas_affected" class="form-control" rows="5"></textarea>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-group">
+              <label> DisCo / Genco Notification</label>
+              <textarea name="notified" class="form-control" rows="2"></textarea>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label >Date Notify</label>
+                <input name="date_notified" type="date" class="form-control" placeholder="End Date">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label >Time Notified</label>
+                <input name="time_notified" type="time" class="form-control">
+              </div>             
+            </div>
+          </div>
+
+        <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
+        <button type="button" onclick="window.history.back()" class="btn btn-light">Cancel</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const outageSelect = document.getElementById('outage-type');
+  const equipmentSelect = document.getElementById('equipment-select');
+  const lineSelect = document.getElementById('line-select');
+  const approvedGroup = document.getElementById('approved-date-group');
+  const customEqGroup = document.getElementById('custom-equipment-group');
+  const customLineGroup = document.getElementById('custom-line-group');
+  const scheduleEqGroup = document.getElementById('eq_schedule_date');
+  const scheduleLineGroup = document.getElementById('li_schedule_date');
+  const startDate = document.getElementById('start-date');
+  const reasonDiv = document.getElementById("reason-submission");
+  const form = document.getElementById('request-form');
+
+  // Capture original options
+  const origEqOptions = Array.from(equipmentSelect.options).map(o => ({value: o.value, text: o.text}));
+  const origLineOptions = Array.from(lineSelect.options).map(o => ({value: o.value, text: o.text}));
+
+  function rebuildSelect(select, origOptions, allowedValues) {
+    select.innerHTML = '';
+    origOptions.forEach(opt => {
+      if (allowedValues.includes(opt.value)) {
+        const o = document.createElement('option'); o.value = opt.value; o.text = opt.text;
+        select.appendChild(o);
+      }
+    });
+  }
+
+  function toggleFields() {    
+    if (outageSelect.value === 'Annual') {
+      // Remove 'other'
+      equipmentSelect.remove(equipmentSelect.options.length - 1);
+      lineSelect.remove(lineSelect.options.length - 1);
+      const startDateV = startDate.value
+      const equipment = equipmentSelect.value
+      const line = lineSelect.value      
+
+      if (startDateV && (equipment || line)){
+        const itemType = equipment ? "equipment" : "line"
+        const itemId = equipment ? equipment : line
+
+        fetch(`get_approved_date?item_id=${itemId}&item_type=${itemType}`)
+            .then(response => response.json())
+            .then(data => {
+              scheduleLineGroup.style.display = 'block'
+              document.getElementById("liScheduleDate").innerText =
+                "Schedule Date: " + (data.approved_date || "Not found");
+
+              scheduleDate = (data.approved_date || "Not found");
+              if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
+                const selectedText = equipment ? equipmentSelect.options[equipmentSelect.selectedIndex].text : lineSelect.options[lineSelect.selectedIndex].text;
+                alert("Kindly contact a NCC Officer, "+ selectedText + " don't have a scheduled date")                
+              } else {
+                const cleanedDate = scheduleDate.replace(/(\d{1,2}) (\w+),/, '$1 $2');
+                toggleReasons(cleanedDate)                
+              }
+            })
+            .catch(error => {
+              console.error("Error fetching Schedule date:", error);
+            });            
+
+
+      }
+
+    } else {
+      rebuildSelect(equipmentSelect, origEqOptions, origEqOptions.map(o=>o.value));
+      rebuildSelect(lineSelect, origLineOptions, origLineOptions.map(o=>o.value));
+      approvedGroup.style.display = 'none';
+      reasonDiv.style.display = "none"
+      scheduleLineGroup.style.display = 'none'
+      scheduleEqGroup.style.display = 'none'
+
+    }
+    // Reset custom groups
+    customEqGroup.style.display = equipmentSelect.value === 'other' ? 'block' : 'none';
+    customLineGroup.style.display = lineSelect.value === 'other' ? 'block' : 'none';    
+  }
+
+  outageSelect.addEventListener('change', toggleFields);
+
+  equipmentSelect.addEventListener('change', () => {    
+    lineSelect.value = ""
+    scheduleLineGroup.style.display = 'none'
+      customEqGroup.style.display = equipmentSelect.value === 'other' ? 'block' : 'none'
+      if (outageSelect.value === 'Annual') {
+          const seletedEquipmentID = equipmentSelect.value;
+          if (!seletedEquipmentID) return;
+
+          if (seletedEquipmentID){
+            const startDateV = startDate.value
+            fetch(`get_approved_date?item_id=${seletedEquipmentID}&item_type=equipment`)
+            .then(response => response.json())
+            .then(data => {
+              scheduleEqGroup.style.display = 'block'
+              document.getElementById("eqScheduleDate").innerText =
+                "Schedule Date: " + (data.approved_date || "Not found");
+                scheduleDate = (data.approved_date || "Not found");
+                if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
+                  alert("Kindly contact a NCC Officer")
+                } else {
+                  const cleanedDate = scheduleDate.replace(/(\d{1,2}) (\w+),/, '$1 $2');
+                  toggleReasons(cleanedDate)                
+                }
+            })
+            .catch(error => {
+              console.error("Error fetching Schedule date:", error);
+            });            
+          }    
+        } else {
+          reasonDiv.style.display = "none"
+          scheduleLineGroup.style.display = 'none'
+          scheduleEqGroup.style.display = 'none'
+        }                
+  });
+  lineSelect.addEventListener('change', () => {    
+    customLineGroup.style.display = lineSelect.value === 'other' ? 'block' : 'none'
+    equipmentSelect.value = ""
+    scheduleEqGroup.style.display = 'none'
+    if (outageSelect.value === 'Annual') {
+          const seletedLineID = lineSelect.value;
+          if (!seletedLineID) return;
+
+          if (seletedLineID){
+            const startDateV = startDate.value
+            fetch(`get_approved_date?item_id=${seletedLineID}&item_type=line`)
+            .then(response => response.json())
+            .then(data => {
+              scheduleLineGroup.style.display = 'block'
+              document.getElementById("liScheduleDate").innerText =
+                "Schedule Date: " + (data.approved_date || "Not found");
+              scheduleDate = (data.approved_date || "Not found");
+              if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
+                const selectedText = lineSelect.options[lineSelect.selectedIndex].text;
+                alert("Kindly contact a NCC Officer, "+ selectedText + " don't have a scheduled date")
+              } else {
+                const cleanedDate = scheduleDate.replace(/(\d{1,2}) (\w+),/, '$1 $2');
+                toggleReasons(cleanedDate)                
+              }
+            })
+            .catch(error => {
+              console.error("Error fetching Schedule date:", error);
+            });            
+          }    
+        } else {
+          reasonDiv.style.display = "none"
+          scheduleLineGroup.style.display = 'none'
+          scheduleEqGroup.style.display = 'none'
+        }
+  });
+
+  function toggleReasons(cleanedDate){
+    const startDate = document.getElementById('start-date').value;
+    const startDateV = new Date(startDate)
+    const applicationDate = '{{ today|date:"Y-m-d" }}';      
+    const parsedDate = new Date(cleanedDate);
+    // 🔄 Normalize both to same day (ignoring time)
+    const sameDay = (
+      startDateV.getFullYear() === parsedDate.getFullYear() &&
+      startDateV.getMonth() === parsedDate.getMonth() &&
+      startDateV.getDate() === parsedDate.getDate()
+    );
+    const diffAppStart = (new Date(startDateV) - new Date(applicationDate)) / 86400000;
+    const diffAppApproved = (parsedDate - new Date(applicationDate)) / 86400000;
+    if (diffAppStart < 14 || diffAppApproved < 14 || !sameDay) {
+      reasonDiv.style.display = "block"
+    } else {
+      reasonDiv.style.display = "none"
+    }
+    
+  }
+
+  startDate.addEventListener("change", () => {
+    if (outageSelect.value === "Annual"){      
+      const seletedEquipmentID = equipmentSelect.value;
+      const seletedLineID = lineSelect.value;
+      if (!seletedLineID && !seletedEquipmentID) alert("Please Select an Equipment");
+      let scheduleDate;
+      if (seletedLineID){
+            fetch(`get_approved_date?item_id=${seletedLineID}&item_type=line`)
+            .then(response => response.json())
+            .then(data => {                            
+              scheduleDate = (data.approved_date || "Not found");
+              if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
+                alert("Kindly contact a NCC Officer")
+              } else {
+                const cleanedDate = scheduleDate.replace(/(\d{1,2}) (\w+),/, '$1 $2');
+                toggleReasons(cleanedDate)                
+              }
+              console.log(scheduleDate);
+            })
+            .catch(error => {
+              console.error("Error fetching Schedule date:", error);
+            });            
+      }
+      
+      if (seletedEquipmentID){
+            fetch(`get_approved_date?item_id=${seletedEquipmentID}&item_type=equipment`)
+            .then(response => response.json())
+            .then(data => {
+              scheduleDate = (data.approved_date || "Not found");
+              if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
+                alert("Kindly contact a NCC Officer")
+              } else {
+                const cleanedDate = scheduleDate.replace(/(\d{1,2}) (\w+),/, '$1 $2');
+                toggleReasons(cleanedDate)                
+              }
+              console.log(scheduleDate);
+            })
+            .catch(error => {
+              console.error("Error fetching Schedule date:", error);
+            });            
+        }
+        
+    } else {
+      reasonDiv.style.display = "none"
+      scheduleLineGroup.style.display = 'none'
+      scheduleEqGroup.style.display = 'none'
+    }
+  })
+  toggleFields();
+
+  //TODO: Submission validation
+  form.addEventListener('submit', function(e) {
+    if (outageSelect.value === 'Annual') {
+      const approvedDate = document.getElementById('approved-date').value;
+      const startDate = document.getElementById('start-date').value;
+      const applicationDate = '{{ today|date:"Y-m-d" }}';
+      const reasons = [];
+
+      if (approvedDate !== startDate) reasons.push('Approved date must match start date');
+      const diffAppStart = (new Date(startDate) - new Date(applicationDate)) / 86400000;
+      const diffAppApproved = (new Date(approvedDate) - new Date(applicationDate)) / 86400000;
+      if (diffAppStart < 14 || diffAppApproved < 14) reasons.push('Application and approval must be at least 14 days before start date');
+
+      if (reasons.length) {
+        e.preventDefault();
+        let html = '<div class="alert alert-warning"><p>Please address the following:</p><form>';
+        reasons.forEach((r,i) => {
+          html += `<div class='form-check'><input class='form-check-input' type='radio' name='reason' id='reason${i}'><label class='form-check-label' for='reason${i}'>${r}</label></div>`;
+        });
+        html += '</form></div>';
+        form.insertAdjacentHTML('beforebegin', html);
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

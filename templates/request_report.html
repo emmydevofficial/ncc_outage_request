@@ -1,0 +1,136 @@
+{{ my_datetime_variable|date:"H:i" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outage Request</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #2c3e50;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .header p {
+            font-size: 14px;
+            color: #555;
+        }
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            font-size: 80px;
+            color: rgba(200, 200, 200, 0.2);
+            transform: translate(-50%, -50%) rotate(-30deg);
+            z-index: -1;
+            font-weight: bold;
+        }
+        .info-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+        }
+        .info-section p {
+            margin: 5px 0;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .details-table th, .details-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .details-table th {
+            background-color: #2c3e50;
+            color: white;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">NCC</div>
+
+    <div class="header">
+        <h1>Outage Request</h1>
+        <p>Application Date and Time: {{ request.created_at|date:"F j, Y, H:i" }}HRS</p>
+    </div>
+
+    <div class="info-section">
+        <p><strong>Requested By:</strong> {{ request.user.first_name }} {{ request.user.last_name }}</p>
+        <p><strong>Station:</strong> {{ request.station }}</p>
+        <p><strong>Region:</strong> {{ request.station.region }}</p>
+        <p><strong>ACC:</strong> {{ request.station.acc }}</p>
+        <p><strong>Start Date:</strong> {{ request.start_date }} {{ request.start_time|time:"H:i" }}HRS</p>
+        <p><strong>End Date:</strong> {{ request.end_date }} {{ request.end_time|time:"H:i" }}HRS</p>
+        <p><strong>Load Involved:</strong> {{ request.load_involved }} MW</p>
+        <p><strong>Areas Affected:</strong> {{ request.area_affected }}</p>
+        <p><strong>Remarks:</strong> {{ request.remarks }}</p>
+    </div>
+
+    <h2>Equipment Details</h2>
+    <table class="details-table">
+        <tr>
+            <th>Equipment / Line Name</th>            
+            <th>Work Description</th>
+        </tr>
+        
+        
+            {% if  request.equipment.name%}
+            <tr>
+                <td>{{ request.equipment.name }}</td>
+            
+                <td>{{ request.work_description }}</td>
+            </tr>
+            {% endif %}
+            {% if  request.line.name %}
+                <tr>
+                    <td>{{ request.line.name }}</td>
+                    
+                    <td>{{ request.work_description }}</td>
+                </tr>
+        {% endif %}
+        
+    </table>
+
+    <h2>Approval Details</h2>
+    <div class="info-section">
+        {% if request.is_reviewed %}
+            <p><strong>Reviewed By:</strong> {{ request.reviewed_by.first_name }} {{ request.reviewed_by.last_name }}</p>
+            <p><strong>Reviewer Comment:</strong> {{ request.reviewer_comment }}</p>
+        {% else %}
+            <p>Not Reviewed</p>
+        {% endif %}
+
+        {% if request.seen_by_approval %}
+            <p><strong>Approving authority:</strong> {{ request.approve_by.first_name }} {{ request.approve_by.last_name }}</p>
+            <p><strong>Approval Status:</strong> {{ request.is_approved }}</p>
+            <p><strong>Approval Comment:</strong> {{ request.approved_comment }}</p>            
+        {% else %}
+            <p>Not Approved</p>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <p>National Control center &copy; 2025</p>
+    </div>
+</body>
+</html>

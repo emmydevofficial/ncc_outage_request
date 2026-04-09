@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3 class="page-title"> Edit Region </h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Regions</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit Region</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="col-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Region</h4>
+            <p class="card-description"> Edit Existing Region </p>
+            <form class="forms-sample" action="{% url 'edit_region_post' region.id %}" method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input name="name" type="text" class="form-control" value="{{ region.name }}" placeholder="Name">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Address</label>
+                            <input name="address" type="text" class="form-control" value="{{ region.address }}" placeholder="Address">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>ROM Name</label>
+                            <input name="rom_name" type="text" class="form-control" value="{{ region.rom_name }}" placeholder="ROM">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>ROM Email</label>
+                            <input name="rom_email" type="email" class="form-control" value="{{ region.rom_email }}" placeholder="ROM Email">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>ROM Phone</label>
+                            <input name="rom_phone" type="text" class="form-control" value="{{ region.rom_phone }}" placeholder="ROM Phone">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>ROC Name</label>
+                            <input name="roc_name" type="text" class="form-control" value="{{ region.roc_name }}" placeholder="ROC">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>ROC Email</label>
+                            <input name="roc_email" type="email" class="form-control" value="{{ region.roc_email }}" placeholder="ROC Email">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>ROC Phone</label>
+                            <input name="roc_phone" type="text" class="form-control" value="{{ region.roc_phone }}" placeholder="ROC Phone">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-gradient-primary me-2">Update</button>
+                <a href="{% url 'all_regions' %}" class="btn btn-light">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

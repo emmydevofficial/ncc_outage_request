@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3 class="page-title"> Requests Table </h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Requests</a></li>
+        <li class="breadcrumb-item active" aria-current="page">All Reviewed Requests</li>
+      </ol>
+    </nav>
+  </div>
+
+  <form method="GET" class="mb-3">
+    <div class="row p-3">
+        <div class="col-md-6">
+            <label>Application (From)</label>
+            <input type="date" name="app_start_date" class="form-control" value="{{ request.GET.app_start_date }}">
+        </div>
+        <div class="col-md-6">
+            <label>Application (To)</label>
+            <input type="date" name="app_end_date" class="form-control" value="{{ request.GET.app_end_date }}">
+          </div>        
+      </div>
+      
+      <div class="row p-3">
+        <div class="col-md-6">
+          <label>Job Start Date</label>
+          <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+      </div>
+      <div class="col-md-6">
+          <label>Job End Date</label>
+          <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+        </div>        
+      </div>
+
+      <div class="row p-3">
+        <div class="col-md-4">
+          <label>Region</label>
+          <select name="region" class="form-control" onchange="this.form.submit()">
+              <option value="">All</option>
+              {% for r in regions %}
+              <option value="{{ r.id }}" {% if request.GET.region == r.id|stringformat:"s" %}selected{% endif %}>{{ r.name }}</option>
+              {% endfor %}
+          </select>
+      </div>
+      <div class="col-md-4">
+          <label>ACC</label>
+          <select name="acc" class="form-control" onchange="this.form.submit()">
+              <option value="">All</option>
+              {% for a in accs %}
+              <option value="{{ a.id }}" {% if request.GET.acc == a.id|stringformat:"s" %}selected{% endif %}>{{ a.name }}</option>
+              {% endfor %}
+          </select>
+      </div>
+      <div class="col-md-4">
+          <label>Station</label>
+          <select name="station" class="form-control" onchange="this.form.submit()">
+              <option value="">All</option>
+              {% for s in stations %}
+              <option value="{{ s.id }}" {% if request.GET.station == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+              {% endfor %}
+          </select>
+      </div>
+      </div>
+        <div class="row p-2">
+          <div class="col-md-6">
+            <label>Work Description</label>
+            <input type="text" name="work_description" class="form-control" placeholder="Search work description" value="{{ request.GET.work_description }}">
+        </div>
+
+        <div class="col-md-6 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary me-2">Filter</button>
+          <a href="{% url 'export_requests_csv' %}?start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}&region={{ request.GET.region }}&acc={{ request.GET.acc }}&station={{ request.GET.station }}&work_description={{ request.GET.work_description }}" class="btn btn-success" target="_blank">Download CSV</a>
+      </div>
+      </div>
+      
+</form>
+
+<div class="col-lg-12 grid-margin stretch-card">
+  <div class="card">
+    <div class="card-body table-responsive">
+      <h4 class="card-title">All Reviewed Requests Table</h4>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th> # </th>
+            <th> Timestamp </th>
+            <th> Region </th>
+            <th> Requesting Station </th>
+            <th> Relayed to NCC by </th>              
+            <th> Location of Job </th>
+            <th> Equipment Type </th>
+            <th> Desired Equipment </th>
+            <th> Outage Type </th>
+            <th> Description of Work </th>
+            <th> Additional Apparatus </th>
+            <th> Date (From) </th>
+            <th> Time (From) </th>
+            <th> Date (To) </th>
+            <th> Time (To) </th>
+            <th> Load Interupted </th>
+            <th> Areas Affected </th>
+            <th> Remarks </th>
+            <th> Disco/Genco Notified </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+          <tr>
+            <td> {{forloop.counter}} </td>
+            <td>{{ req.created_at|date:"F j, Y, H:i" }}HRS</td>
+            <td> {{req.station.region}} </td>
+            <td> {{req.station.acc}} </td>
+            <td> {{req.user.last_name}} {{req.user.first_name}} </td>
+            <td>{{req.station}}</td>
+            <td>{{req.equipment.equipment_type}}</td>
+            <td>{{req.equipment}}</td>
+            <td>{{req.outage_type}}</td>
+            <td> {{req.work_description}} </td>
+            <td>{{req.apparatus_for_safe_working_space}}</td>
+            <td>{{req.start_date}}</td>
+            <td>{{req.start_time|time:"H:i"}}HRS</td>
+            <td>{{req.end_date}}</td>
+            <td>{{req.end_time|time:"H:i"}}HRS</td>
+            <td> {{req.load_involved}} </td>
+            <td>{{req.area_affected}}</td>
+            <td>{{req.remarks}}</td>              
+            <td>{{req.disco_genco_notified}}</td>
+            <td><a href="{% url 'view_request' req.id%}"><button class="btn btn-light">View</button></a></td>
+            
+            
+            {% if request.user.is_admin or request.user.is_reviewer %}
+            <td><a href="{% url 'review_request' req.id%}" class="btn btn-light">Review</a></td>
+            {% endif %}                          
+            
+
+            {% if request.user.is_admin or request.user.is_approver %}              
+            {% if req.is_reviewed or request.user.is_admin %} 
+            <td><a href="{% url 'approve_request' req.id%}" class="btn btn-light">Approve</a></td>
+            {% else %} 
+            <td><a href="" disabled class="btn btn-light">Not Reviewed</a></td>
+            {% endif %}
+
+            {% endif %}
+            
+          </tr>
+          {% endfor %}            
+          
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock  %}

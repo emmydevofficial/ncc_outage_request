@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3 class="page-title"> View Requests </h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Requests</a></li>
+        <li class="breadcrumb-item active" aria-current="page">View Request</li>
+      </ol>
+    </nav>
+  </div>
+<div class="row">
+<div class="col-md-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="card-title">Request by</h4>
+                <p class="card-description"> {{req.user.first_name}} {{req.user.last_name}} </p>
+                <h4 class="card-title">Station</h4>
+                <p class="card-description">  {{req.station}} </p>
+                <h4 class="card-title">Protection Guarantee</h4>
+                <p class="card-description">  {{req.protection_gurantee}} </p>
+                <h4 class="card-title">Equipment</h4>
+                <p class="card-description">  {{req.equipment}} </p>
+                <h4 class="card-title">Start DateTime</h4>
+                <p class="card-description">  {{req.start_date}} {{req.start_time}}</p>                
+                <h4 class="card-title">Areas Affected</h4>
+                <p class="card-description">  {{req.area_affected}}</p>                
+                <div class="template-demo">
+                
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h4 class="card-title">Requester Staff No</h4>
+                <p class="card-description"> {{req.user.staff_no}} </p>
+                <h4 class="card-title">Region</h4>
+                <p class="card-description"> {{req.station.region}} </p>
+                <h4 class="card-title"></h4>
+                <p class="card-description"> </p>
+                <h4 class="card-title">Line</h4>
+                <p class="card-description">  {{req.line}} </p>
+                <h4 class="card-title">Load Involue</h4>
+                <p class="card-description">  {{req.load_involved}} MW</p> 
+                <h4 class="card-title">End DateTime</h4>
+                <p class="card-description">  {{req.end_date}} {{req.end_time}}</p>               
+                <h4 class="card-title">Disco / Genco notified</h4>
+                <p class="card-description">  {{req.disco_genco_notified}}</p>                
+                <div class="template-demo">
+                
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="card-title">Work Description</h4>
+                    <p class="card-description"> {{req.work_description}} </p>
+                
+                </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                  <h4 class="card-title">Remarks</h4>
+                  <p class="card-description"> {{req.remarks}} </p>
+              
+              </div>
+
+          </div>
+            
+         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if req.is_reviewed %}
+<div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="card-title">Review by</h4>
+                    <p class="card-description"> {{req.reviewed_by.first_name}} {{req.reviewed_by.last_name}} </p>
+                    <div class="template-demo">
+                    
+                    </div>
+                </div>
+    
+                <div class="col-md-6">
+                    <h4 class="card-title">Reviewed at</h4>
+                    <p class="card-description"> {{req.reviewed_at}} </p>
+                    <div class="template-demo">
+                    
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4 class="card-title">Reviewer Comment</h4>
+                        <p class="card-description"> {{req.reviewer_comment}} </p>            
+                    
+                    </div>
+    
+                </div>
+                
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+{% else %}
+<div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="card-title text-center">Not Reviewed</h4>
+                    
+                </div>
+    
+                
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endif %}
+
+{% if req.seen_by_approval %}
+<div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="card-title">Approving authority:</h4>
+                    <p class="card-description"> {{req.approve_by.first_name}} {{req.approve_by.last_name}} </p>
+                    <div class="template-demo">
+                    
+                    </div>
+                </div>
+    
+                <div class="col-md-6">
+                    <h4 class="card-title">Approve</h4>
+                    <p class="card-description"> {{req.is_approved}}  (<span class=""> {{req.approved_at}} )</span>                    </p>                    
+                    
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4 class="card-title">Approver Comment</h4>
+                        <p class="card-description"> {{req.approved_comment}} </p>
+                        
+                    </div>
+
+                    <div class="col-md-3">
+                      <h4 class="card-title">NOTA</h4>
+                      <p class="card-description"> {{req.nota}} </p>
+                      
+                  </div>
+
+                  <div class="col-md-3">
+                    <h4 class="card-title">DOTA</h4>
+                    <p class="card-description"> {{req.dota}} </p>
+                    
+                </div>
+    
+                </div>
+                
+             </div>
+          </div>
+        </div>
+      </div>
+    
+
+
+{% else %}
+<div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="card-title text-center">Not Approved</h4>
+                    
+                </div>
+    
+                
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% endif %}
+
+<div class="text-center mt-4">
+  <a href="{% url 'generate_request_report' req.id%}" target="_blank" rel="noopener noreferrer">
+    <button class="btn btn-primary">Print / Save as PDF</button>
+  </a>
+</div>
+
+<script>
+  function printRequest() {
+      window.print();
+  }
+  </script>
+  
+
+
+  {% endblock  %}

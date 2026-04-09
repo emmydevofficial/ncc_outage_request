@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3 class="page-title"> Add Equipment </h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Equipments</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Add Equipment</li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="col-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Equipment</h4>
+        <p class="card-description"> Add New Equipment </p>
+        <form class="forms-sample" method="post" action="{% url "add_equipment_post" %}">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label >Name</label>
+                <input name="name" type="text" class="form-control" placeholder="Equipment Name">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label> Nomenclature</label>
+                <input name="nomenclature" type="text" class="form-control" placeholder="Nomenclature">
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Voltage Level</label>
+                <input name="voltage_level" type="text" class="form-control" placeholder="Voltage">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Equipment Type</label>
+                <input name="equipment_type" type="text" class="form-control" placeholder="Equipment Type">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Approved Date</label>
+                <input name="approve_date" type="date" class="form-control">
+              </div>
+            </div>
+          </div>
+            
+            <div class="row">
+              <!-- Region Selection -->
+              <div class="col-md-4">
+                <div class="form-group">
+                    <label>Region</label>
+                    <select name="region" id="region-select" class="form-control" required>
+                        <option value="">-- Select Region --</option>
+                        {% for region in regions %}
+                            <option value="{{ region.id }}">{{ region.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>              
+            </div>                        
+  
+            <!-- ACC Selection -->
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>ACC</label>
+                    <select name="acc" id="acc-select" class="form-control" required>
+                        <option value="">-- Select ACC --</option>
+                    </select>
+                </div>              
+            </div>
+  
+            <!-- Station Selection -->
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Station</label>
+                    <select name="station" id="station-select" class="form-control" required>
+                        <option value="">-- Select Station --</option>
+                    </select>
+                </div>
+            </div>
+  
+          </div>
+                    
+          <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
+          <button class="btn btn-light">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // When a region is selected, fetch related ACCs
+        $("#region-select").change(function () {
+            var regionID = $(this).val();
+            $("#acc-select").html('<option value="">-- Loading... --</option>');
+            $("#station-select").html('<option value="">-- Select Station --</option>');
+
+            if (regionID) {
+                $.ajax({
+                    url: "{% url 'get_accs' %}",
+                    data: { region_id: regionID },
+                    success: function (data) {
+                        var accOptions = '<option value="">-- Select ACC --</option>';
+                        data.forEach(function (acc) {
+                            accOptions += `<option value="${acc.id}">${acc.name}</option>`;
+                        });
+                        $("#acc-select").html(accOptions);
+                    }
+                });
+            } else {
+                $("#acc-select").html('<option value="">-- Select ACC --</option>');
+            }
+        });
+
+        // When an ACC is selected, fetch related Stations
+        $("#acc-select").change(function () {
+            var accID = $(this).val();
+            $("#station-select").html('<option value="">-- Loading... --</option>');
+
+            if (accID) {
+                $.ajax({
+                    url: "{% url 'get_stations' %}",
+                    data: { acc_id: accID },
+                    success: function (data) {
+                        var stationOptions = '<option value="">-- Select Station --</option>';
+                        data.forEach(function (station) {
+                            stationOptions += `<option value="${station.id}">${station.name}</option>`;
+                        });
+                        $("#station-select").html(stationOptions);
+                    }
+                });
+            } else {
+                $("#station-select").html('<option value="">-- Select Station --</option>');
+            }
+        });
+    });
+</script>
+  {% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3 class="page-title"> Add Region </h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Regions</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Add Region</li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="col-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Region</h4>
+        <p class="card-description"> Add New Region </p>
+        <form class="forms-sample" action="{% url "add_region_post" %}" method="post">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label >Name</label>
+                <input name="name" type="text" class="form-control" placeholder="Name">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label> Address</label>
+                <input name="address" type="text" class="form-control" placeholder="address">
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>ROM Name</label>
+                <input name="rom_name" type="text" class="form-control" placeholder="ROM">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>ROM Email</label>
+                <input name="rom_email" type="text" class="form-control" placeholder="ROM Email">
+              </div>              
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>ROM Phone</label>
+                <input name="rom_phone" type="text" class="form-control" placeholder="ROM Phone">
+              </div>              
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>ROC Name</label>
+                <input name="roc_name" type="text" class="form-control" placeholder="ROC">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>ROC Email</label>
+                <input name="roc_email" type="text" class="form-control" placeholder="ROC Email">
+              </div>              
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>ROC Phone</label>
+                <input name="roc_phone" type="text" class="form-control" placeholder="ROC Phone">
+              </div>              
+            </div>
+          </div>          
+          <button type="submit" class="btn btn-gradient-primary me-2">Add</button>
+          <button class="btn btn-light">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% endblock %}

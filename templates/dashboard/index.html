@@ -1,0 +1,301 @@
+{% extends 'base.html' %} {% block content %}
+{% load static %}
+<div class="page-header">
+    <h3 class="page-title">
+      <span class="page-title-icon bg-gradient-primary text-white me-2">
+        <i class="mdi mdi-home"></i>
+      </span> Dashboard
+    </h3>
+    <nav aria-label="breadcrumb">
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">
+          <span></span>Overview <i class="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  {% if request.user.is_admin or request.user.is_reviewer or request.user.is_approver %}
+    <div class="row">
+      <div class="col-md-4 stretch-card grid-margin">
+        <div class="card bg-gradient-danger card-img-holder text-white">
+          <div class="card-body">
+              <img src="{%  static 'images/dashboard/circle.svg' %}" class="card-img-absolute" alt="circle-image" />
+            <h4 class="font-weight-normal mb-3">Number of Station <i class="mdi mdi-chart-line mdi-24px float-right"></i>
+            </h4>
+            <h2 class="mb-5">{{count.station_count}}</h2>
+            <h6 class="card-text"></h6>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 stretch-card grid-margin">
+        <div class="card bg-gradient-info card-img-holder text-white">
+          <div class="card-body">
+              <img src="{%  static 'images/dashboard/circle.svg' %}" class="card-img-absolute" alt="circle-image" />
+            <h4 class="font-weight-normal mb-3">Number of Request <i class="mdi mdi-bookmark-outline mdi-24px float-right"></i>
+            </h4>
+            <h2 class="mb-5">{{count.request_count}}</h2>
+            <h6 class="card-text"></h6>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 stretch-card grid-margin">
+        <div class="card bg-gradient-success card-img-holder text-white">
+          <div class="card-body">
+            <img src="{%  static 'images/dashboard/circle.svg' %}" class="card-img-absolute" alt="circle-image" />
+            <h4 class="font-weight-normal mb-3">Number of Region <i class="mdi mdi-diamond mdi-24px float-right"></i>
+            </h4>
+            <h2 class="mb-5">{{count.region_count}}</h2>
+            <h6 class="card-text"></h6>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+  <div class="row">
+    <div class="col-md-4 stretch-card grid-margin">
+      <div class="card bg-gradient-danger card-img-holder text-white">
+        <div class="card-body">
+            <img src="{%  static 'images/dashboard/circle.svg' %}" class="card-img-absolute" alt="circle-image" />
+          <h4 class="font-weight-normal mb-3">Number of Request <i class="mdi mdi-chart-line mdi-24px float-right"></i>
+          </h4>
+          <h2 class="mb-5">{{count.request_count}}</h2>
+          <h6 class="card-text"></h6>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 stretch-card grid-margin">
+      <div class="card bg-gradient-info card-img-holder text-white">
+        <div class="card-body">
+            <img src="{%  static 'images/dashboard/circle.svg' %}" class="card-img-absolute" alt="circle-image" />
+          <h4 class="font-weight-normal mb-3">Number of Unreviewed Request <i class="mdi mdi-bookmark-outline mdi-24px float-right"></i>
+          </h4>
+          <h2 class="mb-5">{{count.unreviewed_request_count}}</h2>
+          <h6 class="card-text"></h6>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 stretch-card grid-margin">
+      <div class="card bg-gradient-success card-img-holder text-white">
+        <div class="card-body">
+          <img src="{%  static 'images/dashboard/circle.svg' %}" class="card-img-absolute" alt="circle-image" />
+          <h4 class="font-weight-normal mb-3">Number of Approved Request <i class="mdi mdi-diamond mdi-24px float-right"></i>
+          </h4>
+          <h2 class="mb-5">{{count.approved_request_count}}</h2>
+          <h6 class="card-text"></h6>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  {% endif %}
+  
+
+  <form method="GET" class="mb-3">
+    <div class="row p-3">
+        <div class="col-md-6">
+            <label>Application (From)</label>
+            <input type="date" name="app_start_date" class="form-control" value="{{ request.GET.app_start_date }}">
+        </div>
+        <div class="col-md-6">
+            <label>Application (To)</label>
+            <input type="date" name="app_end_date" class="form-control" value="{{ request.GET.app_end_date }}">
+          </div>        
+      </div>
+      
+      <div class="row p-3">
+        <div class="col-md-6">
+          <label>Job Start Date</label>
+          <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+      </div>
+      <div class="col-md-6">
+          <label>Job End Date</label>
+          <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+        </div>        
+      </div>
+
+      <div class="row p-3">
+        <div class="col-md-4">
+          <label>Region</label>
+          <select name="region" class="form-control">
+              <option value="">All</option>
+              {% for r in regions %}
+              <option value="{{ r.id }}" {% if request.GET.region == r.id|stringformat:"s" %}selected{% endif %}>{{ r.name }}</option>
+              {% endfor %}
+          </select>
+      </div>
+      <div class="col-md-4">
+          <label>ACC</label>
+          <select name="acc" class="form-control">
+              <option value="">All</option>
+              {% for a in accs %}
+              <option value="{{ a.id }}" {% if request.GET.acc == a.id|stringformat:"s" %}selected{% endif %}>{{ a.name }}</option>
+              {% endfor %}
+          </select>
+      </div>
+      <div class="col-md-4">
+          <label>Station</label>
+          <select name="station" class="form-control" >
+              <option value="">All</option>
+              {% for s in stations %}
+              <option value="{{ s.id }}" {% if request.GET.station == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+              {% endfor %}
+          </select>
+      </div>
+      </div>
+        <div class="row p-2">
+          <div class="col-md-6">
+            <label>Work Description</label>
+            <input type="text" name="work_description" class="form-control" placeholder="Search work description" value="{{ request.GET.work_description }}">
+        </div>
+
+        <div class="col-md-6 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary me-2">Filter</button>
+          <a href="{% url 'export_requests_csv' %}?start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}&region={{ request.GET.region }}&acc={{ request.GET.acc }}&station={{ request.GET.station }}&work_description={{ request.GET.work_description }}" class="btn btn-success" target="_blank">Download CSV</a>
+      </div>
+      </div>
+      
+</form>
+
+  <div class="col-lg-12 grid-margin stretch-card">
+  <div class="card">
+    <div class="card-body table-responsive">
+      <h4 class="card-title">Requests Table</h4>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th> # </th>
+            <th> Request ID </th>
+            <th> Timestamp </th>
+            <th> Region </th>
+            <th> Requesting Station </th>
+            <th> Relayed to NCC by </th>              
+            <th> Location of Job </th>
+            <th> Equipment Type </th>
+            <th> Desired Equipment </th>
+            <th> Outage Type </th>
+            <th> Description of Work </th>
+            <th> Additional Apparatus </th>
+            <th> Date (From) </th>
+            <th> Time (From) </th>
+            <th> Date (To) </th>
+            <th> Time (To) </th>
+            <th> Load Interupted </th>
+            <th> Areas Affected </th>
+            <th> Remarks </th>
+            <th> Disco/Genco Notified </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests %}
+          <tr>
+            <td> {{forloop.counter}} </td>
+            <td> <a class="open-activity-log" href="#" data-request-id="{{ req.request_id }}"> {{req.request_id}} </a> </td>
+            <td>{{ req.created_at|date:"F j, Y, H:i" }}HRS</td>
+            <td> {{req.station.region}} </td>
+            <td> {{req.station.acc}} </td>
+            <td> {{req.user.last_name}} {{req.user.first_name}} </td>
+            <td>{{req.station}}</td>
+            <td>{{req.equipment.equipment_type}}</td>
+            <td>{{req.equipment}}</td>
+            <td>{{req.outage_type}}</td>
+            <td> {{req.work_description}} </td>
+            <td>{{req.apparatus_for_safe_working_space}}</td>
+            <td>{{req.start_date}}</td>
+            <td>{{req.start_time|time:"H:i"}}HRS</td>
+            <td>{{req.end_date}}</td>
+            <td>{{req.end_time|time:"H:i"}}HRS</td>
+            <td> {{req.load_involved}} </td>
+            <td>{{req.area_affected}}</td>
+            <td>{{req.remarks}}</td>              
+            <td>{{req.disco_genco_notified}}</td>
+            <td><a href="{% url 'view_request' req.id%}"><button class="btn btn-light">View</button></a></td>
+            
+            {% if request.user.is_admin or request.user.is_reviewer %}
+            <td><a href="{% url 'edit_request' req.id%}" class="btn btn-light">Edit</a></td>
+            {% endif %}                          
+
+
+            {% if request.user.is_admin or request.user.is_reviewer %}
+            <td><a href="{% url 'review_request' req.id%}" class="btn btn-light">Review</a></td>
+            {% endif %}                          
+            
+
+            {% if request.user.is_admin or request.user.is_approver %}              
+            {% if req.is_reviewed or request.user.is_admin %} 
+            <td><a href="{% url 'approve_request' req.id%}" class="btn btn-light">Approve</a></td>
+            {% else %}             
+            <td><a href="" disabled class="btn btn-light">Not Reviewed</a></td>
+            {% endif %}
+
+            {% endif %}
+
+            {% if request.user.is_admin or request.user.is_reviewer %}
+            <td><a href="{% url 'confirm_execution' req.id%}" class="btn btn-light">Feedback</a></td>
+            {% endif %}                          
+            
+          </tr>
+          {% endfor %}            
+          
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const activityLogLinks = document.querySelectorAll('.open-activity-log');  
+
+  activityLogLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const requestId = this.getAttribute('data-request-id');
+      
+      // Now you have the requestId! 
+      // You can open your modal and pass this ID to fetch the logs
+      console.log('Request ID:', requestId);
+
+      // Example: Load the logs via AJAX and show modal
+      loadLogsForRequest(requestId);
+    });
+  });
+});
+
+function loadLogsForRequest(requestId) {
+  const logsModal = new bootstrap.Modal(document.getElementById('logs-modal'));
+  const container = document.getElementById('logs-container');
+  // Example - adapt to your actual URL structure
+  fetch(`/requests/logs?request_id=${requestId}`)
+  .then(resp => resp.text())
+  .then(html => {
+    container.innerHTML = html;
+    logsModal.show();
+  });
+
+  document.getElementById('print-logs').addEventListener('click', function() {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write('<html><head><title>Print Logs</title>');
+    printWindow.document.write('</head><body>' + container.innerHTML + '</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+  });
+  
+  // Handler for Request ID links on request list/view
+  document.querySelectorAll('.request-id-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const reqId = this.dataset.id;
+      fetch(`/logs/?request_id=${reqId}`)
+        .then(resp => resp.text())
+        .then(html => {
+          container.innerHTML = html;
+          logsModal.show();
+        });
+    });
+  });
+}
+</script>
+
+
+
+{% endblock %}

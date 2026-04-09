@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3 class="page-title"> Edit User </h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Users</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit User</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="col-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">User</h4>
+            <p class="card-description"> Edit User Details </p>
+            <form class="forms-sample" method="POST" action="{% url 'edit_user_post' user.id %}">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input name="first_name" type="text" class="form-control" value="{{ user.first_name }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input name="last_name" type="text" class="form-control" value="{{ user.last_name }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input name="username" type="text" class="form-control" value="{{ user.username }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Password (Leave blank to keep current password)</label>
+                            <input name="password" type="password" class="form-control" placeholder="New Password">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input name="email" type="email" class="form-control" value="{{ user.email }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Staff No</label>
+                            <input name="staff_no" type="text" class="form-control" value="{{ user.staff_no }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Region</label>
+                            <select name="region" id="region-select" class="form-control" required>
+                                <option value="">-- Select Region --</option>
+                                {% for region in regions %}
+                                <option value="{{ region.id }}" {% if user.region.id == region.id %}selected{% endif %}>
+                                    {{ region.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>              
+                    </div>                        
+        
+                    <!-- ACC Selection -->
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>ACC</label>
+                            <select name="acc" id="acc-select" class="form-control" required>
+                                <option value="">-- Select ACC --</option>
+                            </select>
+                        </div>              
+                    </div>
+        
+                    <!-- Station Selection -->
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Station</label>
+                            <select name="station" id="station-select" class="form-control" required>
+                                <option value="">-- Select Station --</option>
+                                <option value="{{ station.id }}" {% if user.station.id == station.id %}selected{% endif %}>
+                                    {{ station.name }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Phone No</label>
+                            <input name="phone" type="text" class="form-control" value="{{ user.phone }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="form-check form-check-primary">
+                                <label class="form-check-label">
+                                    <input name="station_supervisor" type="checkbox" class="form-check-input" {% if user.is_station_supervisor %}checked{% endif %}>Is Station Supervisor
+                                </label>
+                            </div>
+                            <div class="form-check form-check-primary">
+                                <label class="form-check-label">
+                                    <input name="reviewer" type="checkbox" class="form-check-input" {% if user.is_reviewer %}checked{% endif %}>Is Reviewer
+                                </label>
+                            </div>
+                            <div class="form-check form-check-primary">
+                                <label class="form-check-label">
+                                    <input name="approval" type="checkbox" class="form-check-input" {% if user.is_approver %}checked{% endif %}>Is Approver
+                                </label>
+                            </div>                
+                            <div class="form-check form-check-primary">
+                                <label class="form-check-label">
+                                    <input name="operator" type="checkbox" class="form-check-input" {% if user.is_operator %}checked{% endif %}>Is Operator
+                                </label>
+                            </div>                
+                            <div class="form-check form-check-primary">
+                                <label class="form-check-label">
+                                    <input name="admin" type="checkbox" class="form-check-input" {% if user.is_admin %}checked{% endif %}>Is Admin
+                                </label>
+                            </div>                
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-gradient-primary me-2">Update</button>
+                <a href="{% url 'all_users' %}" class="btn btn-light">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // When a region is selected, fetch related ACCs
+        $("#region-select").change(function () {
+            var regionID = $(this).val();
+            $("#acc-select").html('<option value="">-- Loading... --</option>');
+            $("#station-select").html('<option value="">-- Select Station --</option>');
+
+            if (regionID) {
+                $.ajax({
+                    url: "{% url 'get_accs' %}",
+                    data: { region_id: regionID },
+                    success: function (data) {
+                        var accOptions = '<option value="">-- Select ACC --</option>';
+                        data.forEach(function (acc) {
+                            accOptions += `<option value="${acc.id}">${acc.name}</option>`;
+                        });
+                        $("#acc-select").html(accOptions);
+                    }
+                });
+            } else {
+                $("#acc-select").html('<option value="">-- Select ACC --</option>');
+            }
+        });
+
+        // When an ACC is selected, fetch related Stations
+        $("#acc-select").change(function () {
+            var accID = $(this).val();
+            $("#station-select").html('<option value="">-- Loading... --</option>');
+
+            if (accID) {
+                $.ajax({
+                    url: "{% url 'get_stations' %}",
+                    data: { acc_id: accID },
+                    success: function (data) {
+                        var stationOptions = '<option value="">-- Select Station --</option>';
+                        data.forEach(function (station) {
+                            stationOptions += `<option value="${station.id}">${station.name}</option>`;
+                        });
+                        $("#station-select").html(stationOptions);
+                    }
+                });
+            } else {
+                $("#station-select").html('<option value="">-- Select Station --</option>');
+            }
+        });
+    });
+</script>
+{% endblock %}

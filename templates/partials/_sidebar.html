@@ -1,0 +1,107 @@
+{% load static %}
+<!-- partial:../../partials/_sidebar.html -->
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+    <ul class="nav">
+      <li class="nav-item nav-profile">
+        <a href="#" class="nav-link">
+          <div class="nav-profile-text d-flex flex-column">
+            <span class="font-weight-bold mb-2">{% if request.user.is_admin %} Admin {% elif request.user.is_reviewer %} Reviewer {% elif request.user.is_approver %} Approver {% elif request.user.is_station_supervisor %} Station Supervisor {% else %} Operator {% endif %} </span>
+            <span class="text-secondary text-small">{{request.user.first_name}} {{request.user.last_name}} </span>
+            {% if request.user.is_admin %}<span class="text-secondary text-small"> Grid Manager</span>{% endif %}
+          </div>
+          <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url "dashboard" %}">
+          <span class="menu-title">Dashboard</span>
+          <i class="mdi mdi-home menu-icon"></i>
+        </a>
+        {% if request.user.is_authenticated and request.user.is_admin %}
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#users" aria-expanded="false" aria-controls="ui-basic">
+          <span class="menu-title">Users</span>
+          <i class="menu-arrow"></i>
+          <i class="mdi mdi-account"></i>
+        </a>
+        <div class="collapse" id="users">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item"> <a class="nav-link" href="{% url "all_users" %}">All Users</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{% url "add_user" %}">Add User</a></li>
+          </ul>
+        </div>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#region" aria-expanded="false" aria-controls="ui-basic">
+          <span class="menu-title">Region and ACC</span>
+          <i class="menu-arrow"></i>
+          <i class="mdi mdi-crosshairs-gps menu-icon"></i>
+        </a>
+        <div class="collapse" id="region">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item"> <a class="nav-link" href="{% url "all_regions" %}">All Regions</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{% url "add_region" %}">Add Region</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{% url "all_accs" %}">All ACCs</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{% url "add_acc" %}">Add ACC</a></li>
+          </ul>
+        </div>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#station" aria-expanded="false" aria-controls="ui-basic">
+          <span class="menu-title">Stations</span>
+          <i class="menu-arrow"></i>
+          <i class="mdi mdi-crosshairs-gps menu-icon"></i>
+        </a>
+        <div class="collapse" id="station">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item"> <a class="nav-link" href="{% url "all_stations" %}">All Stations</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{% url "add_station" %}">Add Station</a></li>
+          </ul>
+        </div>
+      </li>
+
+      {% endif %}
+
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#equipment" aria-expanded="false" aria-controls="ui-basic">
+          <span class="menu-title">Equipment and Lines</span>
+          <i class="menu-arrow"></i>
+          <i class="mdi mdi-settings"></i>
+        </a>
+        <div class="collapse" id="equipment">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item"> <a class="nav-link" href="{% url "all_equipments" %}">All Equipment</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{% url "all_lines" %}">All Lines</a></li>
+            {% if request.user.is_authenticated and request.user.is_admin  %}            
+            <li class="nav-item"> <a class="nav-link" href="{% url "add_equipment" %}">Add Equipment</a></li>            
+            <li class="nav-item"> <a class="nav-link" href="{% url "add_line" %}">Add Line</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      </li>      
+
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#request" aria-expanded="false" aria-controls="ui-basic">
+          <span class="menu-title">Requests</span>
+          <i class="menu-arrow"></i>
+          <i class="mdi mdi-file-send"></i>
+        </a>
+        <div class="collapse" id="request">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item"> <a class="nav-link" href="{% url "all_requests" %}">All Requests</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{% url "all_reviewed_requests" %}">All Reviewed Requests</a></li>
+            <li class="nav-item"> <a class="nav-link" href="{% url "all_approved_requests" %}">All Approved Requests</a></li>
+            
+            <li class="nav-item"> <a class="nav-link" href="{% url "add_request" %}">Add Request</a></li>    
+          </ul>
+        </div>
+      </li>
+
+      
+      
+    </ul>
+  </nav>
+  
