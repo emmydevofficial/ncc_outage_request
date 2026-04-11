@@ -10,6 +10,7 @@ class Region(models.Model):
     roc_name = models.CharField( max_length=128)
     roc_email = models.EmailField( max_length=254)
     roc_phone = models.CharField(max_length=20)
+    short_code = models.CharField(max_length=20)
     
     def __str__(self):
         return self.name

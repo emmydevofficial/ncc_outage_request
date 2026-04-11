@@ -33,9 +33,16 @@
           
           {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+              <div class="alert alert-{{ message.tags }}">
+                {% if 'danger' in message.tags %}
+                  <strong>❗️{{ message|upper }}</strong>
+                {% else %}
+                  <strong>{{ message }}</strong>
+                {% endif %}
+              </div>
             {% endfor %}
-        {% endif %}
+          {% endif %}
+
 
           <div class="content-wrapper">
             {% block content %} {% endblock %}

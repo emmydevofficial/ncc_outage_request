@@ -28,7 +28,16 @@
                 <h4 class="card-title">Start DateTime</h4>
                 <p class="card-description">  {{req.start_date}} {{req.start_time}}</p>                
                 <h4 class="card-title">Areas Affected</h4>
-                <p class="card-description">  {{req.area_affected}}</p>                
+                <p class="card-description">  {{req.area_affected}}</p>
+                {% if req.reason_submission_issues %}
+                  {% if req.start_date > req.equipment.approve_date %}
+                  <h4 class="card-title">Reasons For Late Submission</h4>
+                  {% else %}
+                  <h4 class="card-title">Reasons For Early Submission</h4>
+                  {% endif %}
+                <p class="card-description">  {{req.reason_submission_issues}}</p>                  
+                {% endif %}
+                                             
                 <div class="template-demo">
                 
                 </div>
@@ -43,13 +52,18 @@
                 <p class="card-description"> </p>
                 <h4 class="card-title">Line</h4>
                 <p class="card-description">  {{req.line}} </p>
-                <h4 class="card-title">Load Involue</h4>
+                <h4 class="card-title">Load Involved</h4>
                 <p class="card-description">  {{req.load_involved}} MW</p> 
                 <h4 class="card-title">End DateTime</h4>
                 <p class="card-description">  {{req.end_date}} {{req.end_time}}</p>               
                 <h4 class="card-title">Disco / Genco notified</h4>
-                <p class="card-description">  {{req.disco_genco_notified}}</p>                
+                <p class="card-description">  {{req.disco_genco_notified}}</p> 
+                {% if req.reason_submission_issues %}              
+                <h4 class="card-title">Scheduled Date</h4>
+                <p class="card-description">  {{req.equipment.approve_date}}</p>      
+                {% endif %}          
                 <div class="template-demo">
+
                 
                 </div>
             </div>
@@ -186,6 +200,61 @@
             <div class="row">
                 <div class="col-md-12">
                     <h4 class="card-title text-center">Not Approved</h4>
+                    
+                </div>
+    
+                
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% endif %}
+
+{% if req.execution_comment %}
+<div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="card-title">Operator On Duty:</h4>
+                    <p class="card-description"> {{req.executed_by.first_name}} {{req.executed_by.last_name}} </p>
+                    <div class="template-demo">
+                    
+                    </div>
+                </div>
+    
+                <div class="col-md-6">
+                    <h4 class="card-title">Executed</h4>
+                    <p class="card-description"> {{req.is_executed}}  (<span class=""> {{req.executed_at}} )</span>                    </p>                    
+                    
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4 class="card-title">Service Comment</h4>
+                        <p class="card-description"> {{req.execution_comment}} </p>
+                        
+                    </div>    
+                </div>
+                
+             </div>
+          </div>
+        </div>
+      </div>
+    
+
+
+{% else %}
+<div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="card-title text-center">No Feedback</h4>
                     
                 </div>
     

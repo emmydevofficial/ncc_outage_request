@@ -29,6 +29,7 @@ class Request(models.Model):
     disco_genco_notified = models.TextField(null=True)
     reason_submission_issues = models.TextField(null=True) 
     is_reviewed = models.BooleanField(default=False)
+    is_satisfied = models.BooleanField(default=False)
     reviewed_at = models.DateTimeField(null= True, blank=True)
     reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="reviewed_requests", null=True, blank=True)  # Reviewer
     reviewer_comment = models.TextField(null=True, blank=True)

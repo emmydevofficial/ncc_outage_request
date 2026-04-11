@@ -5,9 +5,11 @@ from requests.models import Request
 from stations.models import Station
 from regions.models import Region, ACC
 from equipment.models import Equipment
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
+import calendar
 
 @login_required
 def dashboard(request):
@@ -25,7 +27,7 @@ def dashboard(request):
     region = request.GET.get("region")
     acc = request.GET.get("acc")
     station = request.GET.get("station")
-    work_description = request.GET.get("work_description")
+    search = request.GET.get("search")
     
     if app_start_date and app_end_date:
         # Convert from string to datetime
@@ -76,8 +78,65 @@ def dashboard(request):
     if station:
         requests = requests.filter(station__id=station)
 
-    if work_description:
-        requests = requests.filter(work_description__icontains=work_description)
+    if search:
+        requests = requests.filter(
+            Q(work_description__icontains=search) |
+            Q(request_id__icontains=search)
+            )
+    # ================= OUTAGES LOGIC =====================
+    today = timezone.now().date()
+
+    # Get first and last days of previous, current, and next month
+    def month_range(year, month):
+        first_day = datetime(year, month, 1).date()
+        last_day = datetime(year, month, calendar.monthrange(year, month)[1]).date()
+        return first_day, last_day
+
+    # Previous month
+    prev_month = (today.replace(day=1) - timedelta(days=1))
+    prev_start, prev_end = month_range(prev_month.year, prev_month.month)
+
+    # Current month
+    curr_start, curr_end = month_range(today.year, today.month)
+
+    # Next month
+    if today.month == 12:
+        next_start, next_end = month_range(today.year + 1, 1)
+    else:
+        next_start, next_end = month_range(today.year, today.month + 1)
+
+    # Fetch outages
+    prev_month_outages = Equipment.objects.filter(
+        approve_date__range=[prev_start, prev_end]
+    ).order_by("approve_date")
+
+    curr_month_outages = Equipment.objects.filter(
+        approve_date__range=[curr_start, curr_end]
+    ).order_by("approve_date")
+
+    next_month_outages = Equipment.objects.filter(
+        approve_date__range=[next_start, next_end]
+    ).order_by("approve_date")
+
+    # Role-based filtering
+    user = request.user
+    if user.is_operator:
+        prev_month_outages = prev_month_outages.filter(station=user.station)
+        curr_month_outages = curr_month_outages.filter(station=user.station)
+        next_month_outages = next_month_outages.filter(station=user.station)
+
+    elif user.is_reviewer:
+        prev_month_outages = prev_month_outages.filter(station__region=user.region)
+        curr_month_outages = curr_month_outages.filter(station__region=user.region)
+        next_month_outages = next_month_outages.filter(station__region=user.region)
+
+    elif user.is_admin:
+        pass  # Admin sees everything
+    else:
+        prev_month_outages = prev_month_outages.none()
+        curr_month_outages = curr_month_outages.none()
+        next_month_outages = next_month_outages.none()
+
 
     # Count values
     request_count = requests.count()
@@ -109,6 +168,9 @@ def dashboard(request):
         "regions": regions,
         "accs": accs,
         "stations": stations,
+        "prev_month_outages": prev_month_outages,
+        "curr_month_outages": curr_month_outages,
+        "next_month_outages": next_month_outages,
     }
     return render(request, "dashboard/index.html", context)
 
@@ -140,7 +202,7 @@ def export_requests_csv(request):
     region = request.GET.get("region")
     acc = request.GET.get("acc")
     station = request.GET.get("station")
-    work_description = request.GET.get("work_description")
+    search = request.GET.get("search")
     
     if app_start_date and app_end_date:
         # Convert from string to datetime
@@ -191,8 +253,11 @@ def export_requests_csv(request):
     if station:
         requests = requests.filter(station__id=station)
 
-    if work_description:
-        requests = requests.filter(work_description__icontains=work_description)
+    if search:
+        requests = requests.filter(
+            Q(work_description__icontains=search) |
+            Q(request_id__icontains=search)
+            )
 
     
     # Restricting operators to only see their station's requests
@@ -223,4 +288,9 @@ def export_requests_csv(request):
         ])
 
     return response
+
+
+@login_required
+def bulk_upload(request):
+    return render(request, "bulk_upload/bulk_forms.html")
 

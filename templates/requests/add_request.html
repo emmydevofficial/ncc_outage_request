@@ -39,7 +39,7 @@
           <div class="col-md-6">
             <div class="form-group">
               <label>Protection Guarantee</label>
-              <input name="pg" type="text" class="form-control" placeholder="Protection">
+              <input name="pg" type="text" class="form-control" placeholder="Protection" value="{{ form_data.pg|default_if_none:'' }}">
             </div>
           </div>
 
@@ -47,9 +47,9 @@
             <div class="form-group">
               <label>Outage Type</label>
               <select id="outage-type" name="outage_type" class="form-control">
-                <option value="Planned">Planned</option>
-                <option value="Annual">Annual Maintenance</option>
-                <option value="Urgent">Urgent</option>
+                <option value="Planned" {% if form_data.outage_type|default:'' == "Planned" %}selected{% endif %}>PLANNED (<em>OTHER</em>)</option>
+                <option value="Annual" {% if form_data.outage_type|default:'' == "Annual" %}selected{% endif %}>PLANNED (<i>ANNUAL MAINTENANCE</i>)</option>
+                <option value="Urgent" {% if form_data.outage_type|default:'' == "Urgent" %}selected{% endif %}>URGENT</option>
               </select>
             </div>
           </div>
@@ -62,7 +62,7 @@
               <select id="equipment-select" name="equipment" class="form-control">
                 <option value="">--------</option>
                 {% for equipment in equipments %}
-                  <option value="{{ equipment.id }}">{{ equipment.name }}</option>
+                  <option value="{{ equipment.id }}" {% if form_data.equipment == equipment.id|stringformat:"s" %}selected{% endif %}>{{ equipment.name }}</option>
                 {% endfor %}
                 <option value="other">Other (Not listed)</option>
               </select>
@@ -71,8 +71,9 @@
               <label>Custom Equipment Name</label>
               <input type="text" name="custom_equipment_name" class="form-control">
             </div>
-            <div class="form-group" id="eq_schedule_date" style="display:none;">
-              <p id="eqScheduleDate">Schedule Date: </p>
+            <div class="form-group" id="eq_schedule_date" style="display: none;">
+              <label for="eqScheduleDateInput" style="font-weight: bold; color: red;">Schedule Date:</label>
+              <input type="text" id="eqScheduleDateInput" style="color: red; font-weight: bold;" class="form-control" disabled>
             </div>
           </div>
           <div class="col-md-6">
@@ -81,7 +82,7 @@
               <select id="line-select" name="line" class="form-control">
                 <option value="">--------</option>
                 {% for line in lines %}
-                  <option value="{{ line.id }}">{{ line.name }}</option>
+                  <option value="{{ line.id }}" {% if form_data.line == line.id|stringformat:"s" %}selected{% endif %}>{{ line.name }}</option>
                 {% endfor %}
                 <option value="other">Other (Not listed)</option>
               </select>
@@ -107,20 +108,20 @@
         <div class="row">
           <div class="form-group">
             <label>Work Description</label>
-            <textarea name="work" class="form-control" rows="5"></textarea>
+            <textarea name="work" class="form-control" rows="5" value="{{ form_data.work|default_if_none:'' }}"></textarea>
           </div>
         </div>
         <div class="row">
             <div class="col-md-6">
               <div class="form-group">
                 <label >Load Involved (MW)</label>
-                <input name="load" type="number" step="0.1" class="form-control" placeholder="Load Involved">
+                <input name="load" type="number" step="0.1" class="form-control" placeholder="Load Involved" value="{{ form_data.load|default_if_none:'' }}">
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-group">
                 <label >Apparatus For Safe Working Space</label>
-                <input name="apparatus" type="text" class="form-control">
+                <input name="apparatus" type="text" class="form-control" value="{{ form_data.apparatus|default_if_none:'' }}">
               </div>
               
             </div>
@@ -130,13 +131,13 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label >Start Date</label>
-                <input id="start-date" name="start_date" type="date" class="form-control" placeholder="Start Date">
+                <input id="start-date" name="start_date" type="date" class="form-control" placeholder="Start Date" value="{{ form_data.start_date|default_if_none:'' }}">
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-group">
                 <label >Start Time</label>
-                <input name="start_time" type="time" class="form-control">
+                <input name="start_time" type="time" class="form-control" value="{{ form_data.start_time|default_if_none:'' }}">
               </div>
               
             </div>
@@ -146,13 +147,13 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label >End Date</label>
-                <input name="end_date" type="date" class="form-control" placeholder="End Date">
+                <input name="end_date" type="date" class="form-control" placeholder="End Date" value="{{ form_data.end_date|default_if_none:'' }}">
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-group">
                 <label >End Time</label>
-                <input name="end_time" type="time" class="form-control">
+                <input name="end_time" type="time" class="form-control" value="{{ form_data.end_time|default_if_none:'' }}">
               </div>             
             </div>
           </div>
@@ -160,50 +161,58 @@
           <div class="row" id="reason-submission" style="display: none;">
             <div class="col-md-6">
               <div class="form-group">
-                <label>Reason for Late Submission || Why is the Job Date different from the Schedule Date</label>
-                <select id="line-select" name="reason-sub" class="form-control">
+                <label style="font-weight: bold; color: red;"><span id="reason-label">Reason for Late Submission || Why is the Job Date different from the Schedule Date</span></label>
+                <select id="reason-select" name="reason_sub" class="form-control">
                   <option value="">Please select a reason</option>
                   <option value="negligence">Negligence</option>
                   <option value="work hindered due to maintenance crew">Work was previously hindered due to maintenance crew</option>               
                   <option value="work hindered due to rainfall">Work was previously hindered due to rainfall</option>
                   <option value="work was resheduled by NCC">Work was resheduled by NCC</option>
+                  <option value="others">Others</option>
                 </select>
-              </div>            
+              </div>   
+              <div id="other-reason-container" class="form-group mt-2" style="display: none;">
+                <label style="font-weight: bold; color: red;" for="other-reason">Please specify your reason</label>
+                <textarea id="other-reason" name="other_reason" class="form-control" rows="3"></textarea>
+              </div>         
             </div>
           </div>
 
           <div class="row">
             <div class="form-group">
               <label> Remark</label>
-              <textarea name="remark" class="form-control" rows="5"></textarea>
+              <textarea name="remark" class="form-control" rows="5" value="{{ form_data.remark|default_if_none:'' }}"></textarea>
             </div>
           </div>
 
           <div class="row">
             <div class="form-group">
               <label> Areas to be affected</label>
-              <textarea name="areas_affected" class="form-control" rows="5"></textarea>
+              <textarea name="areas_affected" class="form-control" rows="5" value="{{ form_data.areas_affected|default_if_none:'' }}"></textarea>
             </div>
           </div>
 
           <div class="row">
-            <div class="form-group">
-              <label> DisCo / Genco Notification</label>
-              <textarea name="notified" class="form-control" rows="2"></textarea>
-            </div>
+            
           </div>
 
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <div class="form-group">
-                <label >Date Notify</label>
-                <input name="date_notified" type="date" class="form-control" placeholder="End Date">
+              <label> Stakeholder Notification</label>
+              <textarea name="notified" class="form-control" rows="1" value="{{ form_data.notified|default_if_none:'' }}"></textarea>
+            </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label >Date Stakeholder Notified</label>
+                <input name="date_notified" type="date" class="form-control" placeholder="End Date" value="{{ form_data.date_notified|default_if_none:'' }}">
               </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
               <div class="form-group">
-                <label >Time Notified</label>
-                <input name="time_notified" type="time" class="form-control">
+                <label >Time Stakeholder Notified</label>
+                <input name="time_notified" type="time" class="form-control" value="{{ form_data.time_notified|default_if_none:'' }}">
               </div>             
             </div>
           </div>
@@ -228,6 +237,17 @@ document.addEventListener('DOMContentLoaded', function() {
   const startDate = document.getElementById('start-date');
   const reasonDiv = document.getElementById("reason-submission");
   const form = document.getElementById('request-form');
+   const reasonLabel = document.getElementById("reason-label");
+
+  document.getElementById("reason-select").addEventListener("change", function () {
+    const otherReasonContainer = document.getElementById("other-reason-container");
+    if (this.value === "others") {
+      otherReasonContainer.style.display = "block";
+    } else {
+      otherReasonContainer.style.display = "none";
+    }
+  });
+
 
   // Capture original options
   const origEqOptions = Array.from(equipmentSelect.options).map(o => ({value: o.value, text: o.text}));
@@ -309,8 +329,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
               scheduleEqGroup.style.display = 'block'
-              document.getElementById("eqScheduleDate").innerText =
-                "Schedule Date: " + (data.approved_date || "Not found");
+              document.getElementById("eqScheduleDateInput").value =
+                data.approved_date || "Not found";
+
                 scheduleDate = (data.approved_date || "Not found");
                 if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
                   alert("Kindly contact a NCC Officer")
@@ -384,6 +405,26 @@ document.addEventListener('DOMContentLoaded', function() {
       reasonDiv.style.display = "none"
     }
     
+    if (startDateV > parsedDate) {
+      reasonLabel.innerText = "Reason for Late Submission || Why is the Job Date different from the Schedule Date";
+      console.log("Reason for Late Submission")
+      console.log(startDateV > parsedDate)
+      console.log(startDateV);
+      
+      
+    } else if (startDateV < parsedDate) {
+      reasonLabel.innerText = "Reason for Early Submission || Why is the Job Date different from the Schedule Date";
+      console.log("Reason for Early Submission")
+      console.log(startDateV > parsedDate);
+      console.log(startDateV);
+      console.log(parsedDate);
+      
+      
+    } else {
+      reasonLabel.innerText = "Reason for Date Change || Why is the Job Date different from the Schedule Date";
+      console.log("Reason for Date Change")
+    }
+
   }
 
   startDate.addEventListener("change", () => {
@@ -437,29 +478,29 @@ document.addEventListener('DOMContentLoaded', function() {
   toggleFields();
 
   //TODO: Submission validation
-  form.addEventListener('submit', function(e) {
-    if (outageSelect.value === 'Annual') {
-      const approvedDate = document.getElementById('approved-date').value;
-      const startDate = document.getElementById('start-date').value;
-      const applicationDate = '{{ today|date:"Y-m-d" }}';
-      const reasons = [];
+  // form.addEventListener('submit', function(e) {
+  //   if (outageSelect.value === 'Annual') {
+  //     const approvedDate = document.getElementById('approved-date').value;
+  //     const startDate = document.getElementById('start-date').value;
+  //     const applicationDate = '{{ today|date:"Y-m-d" }}';
+  //     const reasons = [];
 
-      if (approvedDate !== startDate) reasons.push('Approved date must match start date');
-      const diffAppStart = (new Date(startDate) - new Date(applicationDate)) / 86400000;
-      const diffAppApproved = (new Date(approvedDate) - new Date(applicationDate)) / 86400000;
-      if (diffAppStart < 14 || diffAppApproved < 14) reasons.push('Application and approval must be at least 14 days before start date');
+  //     if (approvedDate !== startDate) reasons.push('Approved date must match start date');
+  //     const diffAppStart = (new Date(startDate) - new Date(applicationDate)) / 86400000;
+  //     const diffAppApproved = (new Date(approvedDate) - new Date(applicationDate)) / 86400000;
+  //     if (diffAppStart < 14 || diffAppApproved < 14) reasons.push('Application and approval must be at least 14 days before start date');
 
-      if (reasons.length) {
-        e.preventDefault();
-        let html = '<div class="alert alert-warning"><p>Please address the following:</p><form>';
-        reasons.forEach((r,i) => {
-          html += `<div class='form-check'><input class='form-check-input' type='radio' name='reason' id='reason${i}'><label class='form-check-label' for='reason${i}'>${r}</label></div>`;
-        });
-        html += '</form></div>';
-        form.insertAdjacentHTML('beforebegin', html);
-      }
-    }
-  });
+  //     if (reasons.length) {
+  //       e.preventDefault();
+  //       let html = '<div class="alert alert-warning"><p>Please address the following:</p><form>';
+  //       reasons.forEach((r,i) => {
+  //         html += `<div class='form-check'><input class='form-check-input' type='radio' name='reason' id='reason${i}'><label class='form-check-label' for='reason${i}'>${r}</label></div>`;
+  //       });
+  //       html += '</form></div>';
+  //       form.insertAdjacentHTML('beforebegin', html);
+  //     }
+  //   }
+  // });
 });
 </script>
 {% endblock %}

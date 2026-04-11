@@ -1,0 +1,140 @@
+{% extends 'base.html' %} {% block content %}
+{% load static %}
+
+<div class="page-header">
+    <h3 class="page-title"> Bulk Upload </h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Bulk Upload</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Upload</li>
+      </ol>
+    </nav>
+</div>
+
+
+<div class="col-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Regions</h4>
+        <p class="card-description"> Bulk Upload Regions </p>
+        <form class="forms-sample" action="{% url 'bulk_region_post' %}" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                        <label>Region upload</label>
+                        <div class="input-group col-xs-12">
+                            <input type="file" class="form-control file-upload-info" name="region_csv" placeholder="Upload CSV">
+                        </div>
+                </div>
+            </div>
+          </div>
+                    
+          <button type="submit" class="btn btn-gradient-primary me-2">Add</button>
+          <button class="btn btn-light">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">ACC</h4>
+        <p class="card-description"> Bulk Upload ACC </p>
+        <form class="forms-sample" action="{% url 'bulk_acc_post' %}" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                        <label>ACC upload</label>
+                        <div class="input-group col-xs-12">
+                            <input type="file" class="form-control file-upload-info" name="acc_csv" placeholder="Upload CSV">
+                        </div>
+                </div>
+            </div>
+          </div>
+                    
+          <button type="submit" class="btn btn-gradient-primary me-2">Add</button>
+          <button class="btn btn-light">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Station</h4>
+        <p class="card-description"> Bulk Upload Station </p>
+        <form class="forms-sample" action="{% url 'bulk_station_post' %}" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                        <label>Station upload</label>
+                        <div class="input-group col-xs-12">
+                            <input type="file" class="form-control file-upload-info" name="station_csv" placeholder="Upload CSV">
+                        </div>
+                </div>
+            </div>
+          </div>
+                    
+          <button type="submit" class="btn btn-gradient-primary me-2">Add</button>
+          <button class="btn btn-light">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Equipment</h4>
+        <p class="card-description"> Bulk Upload Equipment </p>
+        <form class="forms-sample" action="{% url 'bulk_equipment_post' %}" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                        <label>Equipment upload</label>
+                        <div class="input-group col-xs-12">
+                            <input type="file" class="form-control file-upload-info" name="equipment_csv" placeholder="Upload CSV">
+                        </div>
+                </div>
+            </div>
+          </div>
+                    
+          <button type="submit" class="btn btn-gradient-primary me-2">Add</button>
+          <button class="btn btn-light">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Upload Scheduled Date For Equipment</h4>
+        <p class="card-description"> Bulk Upload Scheduled Date </p>
+        <form class="forms-sample" action="{% url 'update_equipment_schedule' %}" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                        <label>Scheduled Date upload</label>
+                        <div class="input-group col-xs-12">
+                            <input type="file" class="form-control file-upload-info" name="schedule_csv" placeholder="Upload CSV">
+                        </div>
+                </div>
+            </div>
+          </div>
+                    
+          <button type="submit" class="btn btn-gradient-primary me-2">Add</button>
+          <button class="btn btn-light">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

@@ -5,8 +5,10 @@ urlpatterns = [
     path('equipments', views.all_equipments, name="all_equipments"),
     path('equipments/add_equipment', views.add_equipment, name="add_equipment"),
     path('equipments/add_equipment_post', views.add_equipment_post, name="add_equipment_post"),
+    path('equipments/bulk_equipment_post', views.bulk_equipment_post, name="bulk_equipment_post"),
     path('equipments/<int:equipment_id>/edit', views.edit_equipment, name="edit_equipments"),
     path('equipments/<int:equipment_id>/edit_post', views.edit_equipment_post, name="edit_equipment_post"),
+    path('equipments/update_equipment_schedule', views.update_equipment_schedule, name="update_equipment_schedule"),
     path('equipments/<int:equipment_id>/delete', views.delete_equipment, name="delete_equipment"),
 
     

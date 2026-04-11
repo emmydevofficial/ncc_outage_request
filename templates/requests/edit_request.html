@@ -1,60 +1,459 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
 {% block content %}
-<h3>Edit Request {{ req.request_id }}</h3>
-<form method="post" action="{% url 'edit_request' req.id %}">
-  {% csrf_token %}
-  <div class="mb-3">
-    <label class="form-label">Request ID</label>
-    <input type="text" class="form-control" value="{{ req.request_id }}" disabled>
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Created by</label>
-    <input type="text" class="form-control" value="{{ req.user.get_full_name }} ({{ req.user.username }})" disabled>
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Station</label>
-    <input type="text" class="form-control" value="{{ req.station.name }}" disabled>
-  </div>
-  <!-- Editable fields -->
-  <div class="mb-3">
-    <label class="form-label">Outage Type</label>
-    <select name="outage_type" class="form-control" disabled>
-      <option value="Planned" {% if req.outage_type == 'Planned' %}selected{% endif %}>Planned</option>
-      <option value="Annual" {% if req.outage_type == 'Annual' %}selected{% endif %}>Annual Maintenance</option>                  
-      <option value="Urgent"  {% if req.outage_type == 'Urgent'  %}selected{% endif %}>Urgent</option>      
-    </select>
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Work Description</label>
-    <textarea name="work" class="form-control" rows="5">{{ req.work_description }}</textarea>
-  </div>
 
-  <!-- Other fields displayed as read-only -->
-  <div class="row">
-    <div class="col-md-6 mb-3">
-      <label class="form-label">Start Date</label>
-      <input type="date" class="form-control" name="start_date" value="{{ req.start_date|date:'Y-m-d' }}">      
-    </div>
-    <div class="col-md-6 mb-3">
-      <label class="form-label">Start Time</label>
-      <input type="time" class="form-control" name="start_time" value="{{ req.start_time|time:'H:i' }}">
+<div class="page-header">
+  <h3 class="page-title"> Edit Request </h3>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="#">Requests</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Edit Request</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="col-12 grid-margin stretch-card">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Update Request</h4>
+      <form id="request-form" class="forms-sample" method="post" action="{% url 'edit_request' req.id %}">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Username</label>
+              <input disabled type="text" class="form-control" value="{{ req.user.username }}">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Station Name</label>
+              <input disabled type="text" class="form-control" value="{{ req.station.name }}">
+            </div>
+          </div>
+
+          <input name="username" type="hidden" value="{{ req.user.id }}">
+          <input name="station" type="hidden" value="{{ req.station.id }}">
+
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Protection Guarantee</label>
+              <input name="pg" type="text" class="form-control" value="{{ req.protection_gurantee }}">
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Outage Type</label>
+              <select id="outage-type" name="outage_type" class="form-control">
+                <option value="Planned" {% if req.outage_type == "Planned" %}selected{% endif %}>PLANNED (<em>OTHER</em>)</option>
+                <option value="Annual" {% if req.outage_type == "Annual" %}selected{% endif %}>PLANNED (<i>ANNUAL MAINTENANCE</i>)</option>
+                <option value="Urgent" {% if req.outage_type == "Urgent" %}selected{% endif %}>URGENT</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Equipment</label>
+              <select id="equipment-select" name="equipment" class="form-control">
+                <option value="">--------</option>
+                {% for equipment in equipments %}
+                  <option value="{{ equipment.id }}" {% if req.equipment and req.equipment.id == equipment.id %}selected{% endif %}>{{ equipment.name }}</option>
+                {% endfor %}
+                <option value="other">Other (Not listed)</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Line</label>
+              <select id="line-select" name="line" class="form-control">
+                <option value="">--------</option>
+                {% for line in lines %}
+                  <option value="{{ line.id }}" {% if req.line and req.line.id == line.id %}selected{% endif %}>{{ line.name }}</option>
+                {% endfor %}
+                <option value="other">Other (Not listed)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row form-group">
+          <div class="form-group">
+            <label>Work Description</label>
+            <textarea name="work" class="form-control" rows="5">{{ req.work_description }}</textarea>
+          </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Load Involved (MW)</label>
+                <input name="load" type="number" step="0.1" class="form-control" value="{{ req.load_involved }}">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Apparatus For Safe Working Space</label>
+                <input name="apparatus" type="text" class="form-control" value="{{ req.apparatus_for_safe_working_space }}">
+              </div>
+            </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Start Date</label>
+              <input id="start-date" name="start_date" type="date" class="form-control" value="{{ req.start_date|date:'Y-m-d' }}">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Start Time</label>
+              <input name="start_time" type="time" class="form-control" value="{{ req.start_time|time:'H:i' }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>End Date</label>
+              <input name="end_date" type="date" class="form-control" value="{{ req.end_date|date:'Y-m-d' }}">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>End Time</label>
+              <input name="end_time" type="time" class="form-control" value="{{ req.end_time|time:'H:i' }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label>Remark</label>
+            <textarea name="remark" class="form-control" rows="5">{{ req.remarks }}</textarea>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label>Areas to be affected</label>
+            <textarea name="areas_affected" class="form-control" rows="5">{{ req.area_affected }}</textarea>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>Stakeholder Notification</label>
+              <textarea name="notified" class="form-control" rows="1">{{ req.disco_genco_notified }}</textarea>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>Date Stakeholder Notified</label>
+              <input name="date_notified" type="date" class="form-control" value="{{ req.date_notified|date:'Y-m-d' }}">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>Time Stakeholder Notified</label>
+              <input name="time_notified" type="time" class="form-control" value="{{ req.time_notified|time:'H:i' }}">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gradient-primary me-2">Update</button>
+        <a href="{% url 'all_requests' %}" class="btn btn-light">Cancel</a>
+      </form>
     </div>
   </div>
+</div>
 
-  <div class="row">
-    <div class="col-md-6 mb-3">
-      <label class="form-label">End Date</label>
-      <input type="date" class="form-control" name="end_date" value="{{ req.end_date|date:'Y-m-d' }}">
-    </div>
-    <div class="col-md-6 mb-3">
-      <label class="form-label">End Time</label>
-      <input type="time" class="form-control" name="end_time" value="{{ req.end_time|time:'H:i' }}">
-    </div>
-  </div>
 
-  <!-- Continue listing any additional read-only fields as needed -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const outageSelect = document.getElementById('outage-type');
+  const equipmentSelect = document.getElementById('equipment-select');
+  const lineSelect = document.getElementById('line-select');
+  const approvedGroup = document.getElementById('approved-date-group');
+  const customEqGroup = document.getElementById('custom-equipment-group');
+  const customLineGroup = document.getElementById('custom-line-group');
+  const scheduleEqGroup = document.getElementById('eq_schedule_date');
+  const scheduleLineGroup = document.getElementById('li_schedule_date');
+  const startDate = document.getElementById('start-date');
+  const reasonDiv = document.getElementById("reason-submission");
+  const form = document.getElementById('request-form');
+   const reasonLabel = document.getElementById("reason-label");
 
-  <button type="submit" class="btn btn-primary">Save Changes</button>
-  <a href="{% url 'view_request' req.id %}" class="btn btn-secondary">Cancel</a>
-</form>
+  document.getElementById("reason-select").addEventListener("change", function () {
+    const otherReasonContainer = document.getElementById("other-reason-container");
+    if (this.value === "others") {
+      otherReasonContainer.style.display = "block";
+    } else {
+      otherReasonContainer.style.display = "none";
+    }
+  });
+
+
+  // Capture original options
+  const origEqOptions = Array.from(equipmentSelect.options).map(o => ({value: o.value, text: o.text}));
+  const origLineOptions = Array.from(lineSelect.options).map(o => ({value: o.value, text: o.text}));
+
+  function rebuildSelect(select, origOptions, allowedValues) {
+    select.innerHTML = '';
+    origOptions.forEach(opt => {
+      if (allowedValues.includes(opt.value)) {
+        const o = document.createElement('option'); o.value = opt.value; o.text = opt.text;
+        select.appendChild(o);
+      }
+    });
+  }
+
+  function toggleFields() {    
+    if (outageSelect.value === 'Annual') {
+      // Remove 'other'
+      equipmentSelect.remove(equipmentSelect.options.length - 1);
+      lineSelect.remove(lineSelect.options.length - 1);
+      const startDateV = startDate.value
+      const equipment = equipmentSelect.value
+      const line = lineSelect.value      
+
+      if (startDateV && (equipment || line)){
+        const itemType = equipment ? "equipment" : "line"
+        const itemId = equipment ? equipment : line
+
+        fetch(`get_approved_date?item_id=${itemId}&item_type=${itemType}`)
+            .then(response => response.json())
+            .then(data => {
+              scheduleLineGroup.style.display = 'block'
+              document.getElementById("liScheduleDate").innerText =
+                "Schedule Date: " + (data.approved_date || "Not found");
+
+              scheduleDate = (data.approved_date || "Not found");
+              if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
+                const selectedText = equipment ? equipmentSelect.options[equipmentSelect.selectedIndex].text : lineSelect.options[lineSelect.selectedIndex].text;
+                alert("Kindly contact a NCC Officer, "+ selectedText + " don't have a scheduled date")                
+              } else {
+                const cleanedDate = scheduleDate.replace(/(\d{1,2}) (\w+),/, '$1 $2');
+                toggleReasons(cleanedDate)                
+              }
+            })
+            .catch(error => {
+              console.error("Error fetching Schedule date:", error);
+            });            
+
+
+      }
+
+    } else {
+      rebuildSelect(equipmentSelect, origEqOptions, origEqOptions.map(o=>o.value));
+      rebuildSelect(lineSelect, origLineOptions, origLineOptions.map(o=>o.value));
+      approvedGroup.style.display = 'none';
+      reasonDiv.style.display = "none"
+      scheduleLineGroup.style.display = 'none'
+      scheduleEqGroup.style.display = 'none'
+
+    }
+    // Reset custom groups
+    customEqGroup.style.display = equipmentSelect.value === 'other' ? 'block' : 'none';
+    customLineGroup.style.display = lineSelect.value === 'other' ? 'block' : 'none';    
+  }
+
+  outageSelect.addEventListener('change', toggleFields);
+
+  equipmentSelect.addEventListener('change', () => {    
+    lineSelect.value = ""
+    scheduleLineGroup.style.display = 'none'
+      customEqGroup.style.display = equipmentSelect.value === 'other' ? 'block' : 'none'
+      if (outageSelect.value === 'Annual') {
+          const seletedEquipmentID = equipmentSelect.value;
+          if (!seletedEquipmentID) return;
+
+          if (seletedEquipmentID){
+            const startDateV = startDate.value
+            fetch(`get_approved_date?item_id=${seletedEquipmentID}&item_type=equipment`)
+            .then(response => response.json())
+            .then(data => {
+              scheduleEqGroup.style.display = 'block'
+              document.getElementById("eqScheduleDateInput").value =
+                data.approved_date || "Not found";
+
+                scheduleDate = (data.approved_date || "Not found");
+                if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
+                  alert("Kindly contact a NCC Officer")
+                } else {
+                  const cleanedDate = scheduleDate.replace(/(\d{1,2}) (\w+),/, '$1 $2');
+                  toggleReasons(cleanedDate)                
+                }
+            })
+            .catch(error => {
+              console.error("Error fetching Schedule date:", error);
+            });            
+          }    
+        } else {
+          reasonDiv.style.display = "none"
+          scheduleLineGroup.style.display = 'none'
+          scheduleEqGroup.style.display = 'none'
+        }                
+  });
+  lineSelect.addEventListener('change', () => {    
+    customLineGroup.style.display = lineSelect.value === 'other' ? 'block' : 'none'
+    equipmentSelect.value = ""
+    scheduleEqGroup.style.display = 'none'
+    if (outageSelect.value === 'Annual') {
+          const seletedLineID = lineSelect.value;
+          if (!seletedLineID) return;
+
+          if (seletedLineID){
+            const startDateV = startDate.value
+            fetch(`get_approved_date?item_id=${seletedLineID}&item_type=line`)
+            .then(response => response.json())
+            .then(data => {
+              scheduleLineGroup.style.display = 'block'
+              document.getElementById("liScheduleDate").innerText =
+                "Schedule Date: " + (data.approved_date || "Not found");
+              scheduleDate = (data.approved_date || "Not found");
+              if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
+                const selectedText = lineSelect.options[lineSelect.selectedIndex].text;
+                alert("Kindly contact a NCC Officer, "+ selectedText + " don't have a scheduled date")
+              } else {
+                const cleanedDate = scheduleDate.replace(/(\d{1,2}) (\w+),/, '$1 $2');
+                toggleReasons(cleanedDate)                
+              }
+            })
+            .catch(error => {
+              console.error("Error fetching Schedule date:", error);
+            });            
+          }    
+        } else {
+          reasonDiv.style.display = "none"
+          scheduleLineGroup.style.display = 'none'
+          scheduleEqGroup.style.display = 'none'
+        }
+  });
+
+  function toggleReasons(cleanedDate){
+    const startDate = document.getElementById('start-date').value;
+    const startDateV = new Date(startDate)
+    const applicationDate = '{{ today|date:"Y-m-d" }}';      
+    const parsedDate = new Date(cleanedDate);
+    // 🔄 Normalize both to same day (ignoring time)
+    const sameDay = (
+      startDateV.getFullYear() === parsedDate.getFullYear() &&
+      startDateV.getMonth() === parsedDate.getMonth() &&
+      startDateV.getDate() === parsedDate.getDate()
+    );
+    const diffAppStart = (new Date(startDateV) - new Date(applicationDate)) / 86400000;
+    const diffAppApproved = (parsedDate - new Date(applicationDate)) / 86400000;
+    if (diffAppStart < 14 || diffAppApproved < 14 || !sameDay) {
+      reasonDiv.style.display = "block"
+    } else {
+      reasonDiv.style.display = "none"
+    }
+    
+    if (startDateV > parsedDate) {
+      reasonLabel.innerText = "Reason for Late Submission || Why is the Job Date different from the Schedule Date";
+      console.log("Reason for Late Submission")
+      console.log(startDateV > parsedDate)
+      console.log(startDateV);
+      
+      
+    } else if (startDateV < parsedDate) {
+      reasonLabel.innerText = "Reason for Early Submission || Why is the Job Date different from the Schedule Date";
+      console.log("Reason for Early Submission")
+      console.log(startDateV > parsedDate);
+      console.log(startDateV);
+      console.log(parsedDate);
+      
+      
+    } else {
+      reasonLabel.innerText = "Reason for Date Change || Why is the Job Date different from the Schedule Date";
+      console.log("Reason for Date Change")
+    }
+
+  }
+
+  startDate.addEventListener("change", () => {
+    if (outageSelect.value === "Annual"){      
+      const seletedEquipmentID = equipmentSelect.value;
+      const seletedLineID = lineSelect.value;
+      if (!seletedLineID && !seletedEquipmentID) alert("Please Select an Equipment");
+      let scheduleDate;
+      if (seletedLineID){
+            fetch(`get_approved_date?item_id=${seletedLineID}&item_type=line`)
+            .then(response => response.json())
+            .then(data => {                            
+              scheduleDate = (data.approved_date || "Not found");
+              if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
+                alert("Kindly contact a NCC Officer")
+              } else {
+                const cleanedDate = scheduleDate.replace(/(\d{1,2}) (\w+),/, '$1 $2');
+                toggleReasons(cleanedDate)                
+              }
+              console.log(scheduleDate);
+            })
+            .catch(error => {
+              console.error("Error fetching Schedule date:", error);
+            });            
+      }
+      
+      if (seletedEquipmentID){
+            fetch(`get_approved_date?item_id=${seletedEquipmentID}&item_type=equipment`)
+            .then(response => response.json())
+            .then(data => {
+              scheduleDate = (data.approved_date || "Not found");
+              if (scheduleDate ==="No Date" || scheduleDate ==="Not found") {
+                alert("Kindly contact a NCC Officer")
+              } else {
+                const cleanedDate = scheduleDate.replace(/(\d{1,2}) (\w+),/, '$1 $2');
+                toggleReasons(cleanedDate)                
+              }
+              console.log(scheduleDate);
+            })
+            .catch(error => {
+              console.error("Error fetching Schedule date:", error);
+            });            
+        }
+        
+    } else {
+      reasonDiv.style.display = "none"
+      scheduleLineGroup.style.display = 'none'
+      scheduleEqGroup.style.display = 'none'
+    }
+  })
+  toggleFields();
+
+  //TODO: Submission validation
+  // form.addEventListener('submit', function(e) {
+  //   if (outageSelect.value === 'Annual') {
+  //     const approvedDate = document.getElementById('approved-date').value;
+  //     const startDate = document.getElementById('start-date').value;
+  //     const applicationDate = '{{ today|date:"Y-m-d" }}';
+  //     const reasons = [];
+
+  //     if (approvedDate !== startDate) reasons.push('Approved date must match start date');
+  //     const diffAppStart = (new Date(startDate) - new Date(applicationDate)) / 86400000;
+  //     const diffAppApproved = (new Date(approvedDate) - new Date(applicationDate)) / 86400000;
+  //     if (diffAppStart < 14 || diffAppApproved < 14) reasons.push('Application and approval must be at least 14 days before start date');
+
+  //     if (reasons.length) {
+  //       e.preventDefault();
+  //       let html = '<div class="alert alert-warning"><p>Please address the following:</p><form>';
+  //       reasons.forEach((r,i) => {
+  //         html += `<div class='form-check'><input class='form-check-input' type='radio' name='reason' id='reason${i}'><label class='form-check-label' for='reason${i}'>${r}</label></div>`;
+  //       });
+  //       html += '</form></div>';
+  //       form.insertAdjacentHTML('beforebegin', html);
+  //     }
+  //   }
+  // });
+});
+</script>
+
 {% endblock %}

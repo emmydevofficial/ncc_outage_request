@@ -57,9 +57,12 @@
               <td> {{region.rom_phone}} </td>
               <td> {{region.roc_name}} </td>
               <td> {{region.roc_phone}} </td>
+              {% if request.user.is_admin or request.user.is_reviewer %}
               <td><a href="{% url 'edit_region' region.id %}"><button class="btn btn-light">Edit</button></a></td>
+              {% endif %}                          
+              {% if request.user.is_admin %}
               <td><a href="{% url 'delete_region' region.id %}" class="btn btn-light" onclick="return confirmDelete()">Delete</a></td>
-                
+              {% endif %}                          
             </tr>
             {% endfor %}            
           </tbody>

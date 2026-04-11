@@ -3,6 +3,10 @@ from django.contrib import messages
 from django.db.models import Q
 from .models import Station
 from regions.models import Region, ACC
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+import csv
+import io
 
 # View all stations
 def all_stations(request):
@@ -121,6 +125,104 @@ def edit_station_post(request, station_id):
         except ACC.DoesNotExist:
             messages.error(request, "Invalid ACC selected.")
             return redirect("edit_station", station_id=station.id)
+
+STN_EXPECTED_HEADERS = [
+    "region", "acc", "station", "voltage_level",
+    "location", "state", "email", "phone"
+]
+
+def bulk_station_post(request):
+    if request.method == "POST" and request.FILES.get("station_csv"):
+        file = request.FILES["station_csv"]
+
+        if not file.name.endswith(".csv"):
+            messages.error(request, "Only CSV files are allowed.")
+            return redirect("bulk_upload")  # Replace with actual view name
+
+        try:
+            data = file.read().decode("utf-8")
+            csv_reader = csv.DictReader(io.StringIO(data))
+
+            headers = [h.strip().lower() for h in csv_reader.fieldnames]
+            if headers != STN_EXPECTED_HEADERS:
+                messages.error(request, f"CSV headers are incorrect. Expected: {', '.join(STN_EXPECTED_HEADERS)}")
+                return redirect("bulk_upload")
+
+            success_count = 0
+            skipped_missing_fk = 0
+            skipped_duplicates = 0
+            error_count = 0
+
+            for row in csv_reader:
+                try:
+                    region_name = row["region"].strip()
+                    acc_name = row["acc"].strip()
+                    station_name = row["station"].strip()
+                    voltage = row["voltage_level"].strip()
+                    location = row["location"].strip()
+                    state = row["state"].strip()
+                    email = row["email"].strip()
+                    phone = row["phone"].strip()
+
+                    # Check if region exists
+                    try:
+                        region = Region.objects.get(name=region_name)
+                    except Region.DoesNotExist:
+                        skipped_missing_fk += 1
+                        continue
+
+                    # Check if acc exists
+                    try:
+                        acc = ACC.objects.get(name=acc_name)
+                    except ACC.DoesNotExist:
+                        skipped_missing_fk += 1
+                        continue
+
+                    # Check station name uniqueness
+                    if Station.objects.filter(name=station_name).exists():
+                        skipped_duplicates += 1
+                        continue
+
+                    # Validate email
+                    validate_email(email)
+
+                    # Validate phone
+                    if not phone.isdigit():
+                        raise ValueError("Phone number must contain digits only.")
+
+                    # Create station
+                    Station.objects.create(
+                        name=station_name,
+                        voltage_level=voltage,
+                        region=region,
+                        acc=acc,
+                        location=location,
+                        state=state,
+                        email=email,
+                        phone_num=phone
+                    )
+                    success_count += 1
+
+                except (ValidationError, ValueError) as e:
+                    error_count += 1
+                    continue
+
+            messages.success(
+                request,
+                f"{success_count} stations added. "
+                f"{skipped_duplicates} skipped (duplicates), "
+                f"{skipped_missing_fk} skipped (missing region/acc), "
+                f"{error_count} failed (invalid)."
+            )
+            return redirect("all_stations")  # Replace with your success URL
+
+        except Exception as e:
+            messages.error(request, f"Something went wrong: {str(e)}")
+            return redirect("bulk_upload")
+
+    else:
+        messages.error(request, "Please upload a valid CSV file.")
+        return redirect("bulk_upload")
 
 # Delete station
 def delete_station(request, station_id):

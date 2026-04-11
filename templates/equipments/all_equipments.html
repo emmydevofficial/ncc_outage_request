@@ -3,11 +3,11 @@
 {% block content %}
 
 <div class="page-header">
-    <h3 class="page-title"> Equipments Table </h3>
+    <h3 class="page-title"> Equipment Table </h3>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Equipments</a></li>
-        <li class="breadcrumb-item active" aria-current="page">All Equipments</li>
+        <li class="breadcrumb-item"><a href="#">Equipment</a></li>
+        <li class="breadcrumb-item active" aria-current="page">All Equipment</li>
       </ol>
     </nav>
   </div>
@@ -76,6 +76,7 @@
               <th> # </th>
               <th> Equipment name </th>
               <th> Nomenclature </th>
+              <th> Equipment Type </th>
               <th> Voltage Level </th>
               <th> Regoin </th>
               <th> ACC </th>
@@ -90,13 +91,18 @@
               <td> {{forloop.counter}} </td>
               <td> {{equipment.name}} </td>
               <td> {{equipment.nomenclature}}</td>
-              <td> {{equipment.volttage_level}} </td>
+              <td> {{equipment.equipment_type}}</td>
+              <td> {{equipment.voltage_level}} </td>
               <td> {{equipment.station.region}} </td>
               <td> {{equipment.station.acc}} </td>
               <td> {{equipment.station.name}} </td>
               <td> {{equipment.approve_date}} </td>
+              {% if request.user.is_admin or request.user.is_reviewer %}
               <td><a href="{% url 'edit_equipments' equipment.id %}"><button class="btn btn-light">Edit</button></a></td>
+              {% endif %}                          
+              {% if request.user.is_admin %}
               <td><a href="{% url 'delete_equipment' equipment.id %}" class="btn btn-light" onclick="return confirmDelete()">Delete</a></td>
+            {% endif %}                          
             </tr>
             {% endfor %}
             

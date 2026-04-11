@@ -4,35 +4,60 @@ from django.db.models import Q
 from .models import Equipment, Lines
 from stations.models import Station
 from regions.models import Region, ACC
+import csv
+import io
+import datetime
 
 # View all equipments
 def all_equipments(request):
-    equipments = Equipment.objects.all()
-    regions =  Region.objects.all()
-    accs = ACC.objects.all()
-    stations = Station.objects.all()
+    equipments = Equipment.objects.none()
+    regions = Region.objects.all()
+    accs = ACC.objects.none()
+    stations = Station.objects.none()
+
+    if request.user.is_authenticated:
+        if request.user.is_admin or request.user.is_approver:
+            # Admins and Approvers: Full access
+            equipments = Equipment.objects.all()
+            accs = ACC.objects.all()
+            stations = Station.objects.all()
+        elif request.user.is_reviewer:
+            # Reviewers: Equipment in their region (via station)
+            user_region = getattr(request.user, "region", None)
+            if user_region:
+                equipments = Equipment.objects.filter(station__region=user_region)
+                accs = ACC.objects.filter(region=user_region)
+                stations = Station.objects.filter(region=user_region)
+        elif request.user.is_operator:
+            # Operators: Equipment in their station only
+            user_station = getattr(request.user, "station", None)
+            if user_station:
+                equipments = Equipment.objects.filter(station=user_station)
+                accs = ACC.objects.filter(id=user_station.acc_id)
+                stations = Station.objects.filter(id=user_station.id)        
     
+    # Filters
     region_id = request.GET.get("region")
     acc_id = request.GET.get("acc")
     station_id = request.GET.get("station")
     search_query = request.GET.get("search", "").strip()
-    
+
     if region_id:
         equipments = equipments.filter(station__region_id=region_id)
-        accs = accs.filter(region_id = region_id)
+        accs = accs.filter(region_id=region_id)
         stations = stations.filter(region_id=region_id)
     if acc_id:
         equipments = equipments.filter(station__acc_id=acc_id)
         stations = stations.filter(acc_id=acc_id)
     if station_id:
-        equipments = equipments.filter(station_id = station_id)
-        
+        equipments = equipments.filter(station_id=station_id)
+
     if search_query:
         equipments = equipments.filter(
             Q(name__icontains=search_query) |
             Q(nomenclature__icontains=search_query) |
-            Q(volttage_level__icontains=search_query) |
-            Q(equipment_type__icontains=search_query)                
+            Q(voltage_level__icontains=search_query) |
+            Q(equipment_type__icontains=search_query)
         )
         
     context = {"equipments": equipments, 
@@ -67,7 +92,7 @@ def add_equipment_post(request):
             Equipment.objects.create(
                 name=name,
                 nomenclature=nomenclature,
-                volttage_level=voltage_level,
+                voltage_level=voltage_level,
                 equipment_type = equipment_type,
                 station=station,
                 approve_date = approve_date
@@ -93,12 +118,12 @@ def edit_equipment_post(request, equipment_id):
     if request.method == "POST":
         equipment.name = request.POST.get("name")
         equipment.nomenclature = request.POST.get("nomenclature")
-        equipment.volttage_level = request.POST.get("voltage_level")
+        equipment.voltage_level = request.POST.get("voltage_level")
         station_id = request.POST.get("station")
         equipment.equipment_type = request.POST.get("equipment_type")
         equipment.approve_date = request.POST.get("approve_date")
         
-        if not all([equipment.name, equipment.nomenclature, equipment.volttage_level, station_id, equipment.equipment_type, equipment.approve_date]):
+        if not all([equipment.name, equipment.nomenclature, equipment.voltage_level, station_id, equipment.equipment_type, equipment.approve_date]):
             messages.error(request, "All fields are required.")
             return redirect("edit_equipment", equipment_id=equipment.id)
         
@@ -224,6 +249,179 @@ def edit_line_post(request, line_id):
         except Station.DoesNotExist:
             messages.error(request, "Invalid Station selected.")
             return redirect("edit_line", line_id=line.id)
+
+EQT_EXPECTED_HEADERS = [
+    "region", "acc", "station", "equipment",
+    "equipment_type", "voltage_level", "nomenclature"
+]
+
+def bulk_equipment_post(request):
+    if request.method == "POST" and request.FILES.get("equipment_csv"):
+        file = request.FILES["equipment_csv"]
+
+        if not file.name.endswith(".csv"):
+            messages.error(request, "Only CSV files are allowed.")
+            return redirect("bulk_upload")  # Update with your actual view name
+
+        try:
+            data = file.read().decode("utf-8")
+            csv_reader = csv.DictReader(io.StringIO(data))
+
+            headers = [h.strip().lower() for h in csv_reader.fieldnames]
+            if headers != EQT_EXPECTED_HEADERS:
+                messages.error(request, f"CSV headers are incorrect. Expected: {', '.join(EQT_EXPECTED_HEADERS)}")
+                return redirect("bulk_upload")
+
+            success_count = 0
+            skipped_missing_fk = 0
+            skipped_duplicates = 0
+            error_count = 0
+
+            for row in csv_reader:
+                try:
+                    region_name = row["region"].strip()
+                    acc_name = row["acc"].strip()
+                    station_name = row["station"].strip()
+                    equipment_name = row["equipment"].strip()
+                    equipment_type = row["equipment_type"].strip()
+                    voltage = row["voltage_level"].strip()
+                    nomenclature = row["nomenclature"].strip()
+
+                    # Validate FK: Region
+                    try:
+                        region = Region.objects.get(name=region_name)
+                    except Region.DoesNotExist:
+                        skipped_missing_fk += 1
+                        continue
+
+                    # Validate FK: ACC
+                    try:
+                        acc = ACC.objects.get(name=acc_name)
+                    except ACC.DoesNotExist:
+                        skipped_missing_fk += 1
+                        continue
+
+                    # Validate FK: Station (must match region and acc too)
+                    try:
+                        station = Station.objects.get(
+                            name=station_name,
+                            region=region,
+                            acc=acc
+                        )
+                    except Station.DoesNotExist:
+                        skipped_missing_fk += 1
+                        continue
+
+                    # Unique check: station + equipment
+                    if Equipment.objects.filter(station=station, name=equipment_name).exists():
+                        skipped_duplicates += 1
+                        continue
+
+                    # Save equipment
+                    Equipment.objects.create(
+                        name=equipment_name,
+                        equipment_type=equipment_type,
+                        voltage_level=voltage,
+                        nomenclature=nomenclature,
+                        station=station
+                    )
+                    success_count += 1
+
+                except Exception as e:
+                    error_count += 1
+                    continue
+
+            messages.success(
+                request,
+                f"{success_count} equipment added. "
+                f"{skipped_duplicates} skipped (duplicate station+name), "
+                f"{skipped_missing_fk} skipped (missing FK), "
+                f"{error_count} failed (invalid rows)."
+            )
+            return redirect("all_equipments")  # Update accordingly
+
+        except Exception as e:
+            messages.error(request, f"Error reading file: {str(e)}")
+            return redirect("bulk_upload")
+
+    else:
+        messages.error(request, "Upload a valid CSV file.")
+        return redirect("bulk_upload")
+    
+SCHE_EXPECTED_HEADERS = [
+    "station", "equipment", "equipment_type", "schedule_date"
+]
+
+def update_equipment_schedule(request):
+    if request.method == "POST" and request.FILES.get("schedule_csv"):
+        file = request.FILES["schedule_csv"]
+
+        if not file.name.endswith(".csv"):
+            messages.error(request, "Only CSV files are allowed.")
+            return redirect("bulk_upload")
+
+        try:
+            data = file.read().decode("utf-8")
+            csv_reader = csv.DictReader(io.StringIO(data))
+
+            headers = [h.strip().lower() for h in csv_reader.fieldnames]
+            if headers != SCHE_EXPECTED_HEADERS:
+                messages.error(request, f"CSV headers are incorrect. Expected: {', '.join(SCHE_EXPECTED_HEADERS)}")
+                return redirect("bulk_upload")
+
+            updated_count = 0
+            skipped_not_found = 0
+            invalid_date_count = 0
+
+            for row in csv_reader:
+                try:
+                    station_name = row["station"].strip()
+                    equipment_name = row["equipment"].strip()
+                    schedule_date_str = row["schedule_date"].strip()
+
+                    # Parse date
+                    try:
+                        schedule_date = datetime.datetime.strptime(schedule_date_str, "%Y-%m-%d").date()
+                    except ValueError:
+                        invalid_date_count += 1
+                        continue
+
+                    # Get station
+                    try:
+                        station = Station.objects.get(name=station_name)
+                    except Station.DoesNotExist:
+                        skipped_not_found += 1
+                        continue
+
+                    # Get equipment by station + name
+                    try:
+                        equipment = Equipment.objects.get(name=equipment_name, station=station)
+                        equipment.approve_date = schedule_date
+                        equipment.save()
+                        updated_count += 1
+                    except Equipment.DoesNotExist:
+                        skipped_not_found += 1
+                        continue
+
+                except Exception:
+                    continue  # Silent fail to prevent crash per row
+
+            messages.success(
+                request,
+                f"{updated_count} equipment updated. "
+                f"{skipped_not_found} not found, "
+                f"{invalid_date_count} invalid dates."
+            )
+            return redirect("all_equipments")  # Update accordingly
+
+        except Exception as e:
+            messages.error(request, f"Error processing file: {str(e)}")
+            return redirect("bulk_upload")
+
+    else:
+        messages.error(request, "Please upload a valid CSV file.")
+        return redirect("bulk_upload")
+
 
 # Delete line
 def delete_line(request, line_id):

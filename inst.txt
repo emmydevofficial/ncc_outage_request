@@ -1,0 +1,87 @@
+### Deploying Django Webapp on Linux Server
+
+Assuming Ubuntu 22.04 LTS or similar. Replace `your_ip` with the server's IP address and `port` with desired port (e.g., 8000). Use SSH to connect to the server.
+
+#### 1. Server Setup
+- Update system: `sudo apt update && sudo apt upgrade -y`
+- Install Python 3, pip, virtualenv: `sudo apt install python3 python3-pip python3-venv -y`
+- Install Git: `sudo apt install git -y`
+- Clone your repo: `git clone <your-repo-url> /path/to/project` (replace with actual path, e.g., `/home/user/ncc_outage_tracker`)
+
+#### 2. Virtual Environment and Dependencies
+- Navigate to project: `cd /path/to/project`
+- Create venv: `python3 -m venv venv`
+- Activate: `source venv/bin/activate`
+- Install requirements: `pip install -r requirements.txt`
+- Install Gunicorn for serving: `pip install gunicorn`
+
+#### 3. Configure for Production
+- In `settings.py`, set `DEBUG = False`
+- Add allowed hosts: `ALLOWED_HOSTS = ['your_ip']`
+- Collect static files: `python manage.py collectstatic --noinput`
+
+#### 4. Serve on IP:Port with Gunicorn
+- Run: `gunicorn --bind your_ip:port ncc.wsgi:application` (e.g., `gunicorn --bind 0.0.0.0:8000 ncc.wsgi:application`)
+- For background: Use systemd or screen. Example systemd service:
+  - Create `/etc/systemd/system/django.service`:
+    ```
+    [Unit]
+    Description=Django App
+    After=network.target
+
+    [Service]
+    User=your_user
+    Group=your_group
+    WorkingDirectory=/path/to/project
+    Environment="PATH=/path/to/project/venv/bin"
+    ExecStart=/path/to/project/venv/bin/gunicorn --bind your_ip:port ncc.wsgi:application
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+  - Enable: `sudo systemctl enable django && sudo systemctl start django`
+
+- Access at `http://your_ip:port`
+
+### Switching to PostgreSQL and Migrating Data
+
+#### 1. Install PostgreSQL
+- `sudo apt install postgresql postgresql-contrib -y`
+- Start service: `sudo systemctl start postgresql`
+- Create user: `sudo -u postgres createuser --createdb your_db_user`
+- Set password: `sudo -u postgres psql -c "ALTER USER your_db_user PASSWORD 'your_password';"`
+- Create database: `sudo -u postgres createdb -O your_db_user your_db_name`
+
+#### 2. Install psycopg2
+- In venv: `pip install psycopg2-binary`
+
+#### 3. Update settings.py for PostgreSQL
+Replace the DATABASES section in settings.py:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'your_db_name',
+        'USER': 'your_db_user',
+        'PASSWORD': 'your_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+```
+
+#### 4. Migrate Data from SQLite to PostgreSQL
+- Ensure SQLite db.sqlite3 exists in project root.
+- Install migration tool: `pip install django-dbbackup` (or use pgloader for complex migrations).
+- Dump SQLite data: `python manage.py dumpdata > data.json` (with old SQLite settings).
+- Switch to PostgreSQL settings in settings.py.
+- Run migrations: `python manage.py migrate`
+- Load data: `python manage.py loaddata data.json`
+- If issues, use pgloader: Install `sudo apt install pgloader`, then `pgloader db.sqlite3 postgresql://your_db_user:your_password@localhost/your_db_name`
+
+#### 5. Test and Restart
+- Run `python manage.py check` to verify.
+- Restart Gunicorn: `sudo systemctl restart django`
+- Monitor logs: `sudo journalctl -u django -f`

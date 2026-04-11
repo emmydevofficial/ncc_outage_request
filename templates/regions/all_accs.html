@@ -64,8 +64,12 @@
               <td>{{acc.region.name}}</td>
               <td> {{acc.email}} </td>
               <td> {{acc.phone_num}} </td>
+              {% if request.user.is_admin or request.user.is_reviewer %}
               <td><a href="{% url 'edit_acc' acc.id %}"><button class="btn btn-light">Edit</button></a></td>
+              {% endif %}                          
+              {% if request.user.is_admin %}
               <td><a href="{% url 'delete_acc' acc.id %}" class="btn btn-light" onclick="return confirmDelete()">Delete</a></td>
+              {% endif %}                          
             </tr> 
             {% endfor %}         
           </tbody>
