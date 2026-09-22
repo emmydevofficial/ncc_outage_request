@@ -93,8 +93,12 @@ WSGI_APPLICATION = 'ncc.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ncc_req',
+        'USER': 'ncc_req',
+        'PASSWORD': 'ncc12345678',
+        'HOST': 'postgresql-208808-0.cloudclusters.net',
+        'PORT': '10022',
     }
 }
 
