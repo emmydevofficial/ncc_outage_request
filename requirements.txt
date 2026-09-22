@@ -8,6 +8,7 @@ pillow==11.1.0
 psycopg2-binary==2.9.9
 pycparser==2.22
 pydyf==0.11.0
+python-decouple==3.8
 pyphen==0.17.2
 setuptools==78.0.2
 sqlparse==0.5.3
